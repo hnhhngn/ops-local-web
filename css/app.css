@@ -1,0 +1,510 @@
+/* ---------- Button --------- */
+.pixel-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+
+    font-size: 1.5rem;
+    text-transform: uppercase;
+
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border: var(--border-width) solid var(--color-black);
+    box-shadow: 0 var(--shadow-offset) 0 var(--btn-shadow);
+    transition: all 120ms ease-out;
+}
+
+.pixel-button:active {
+    transform: translate(0, var(--shadow-offset));
+    box-shadow: 0 0 0 var(--color-black);
+}
+
+.pixel-button.blue {
+    --btn-bg: var(--color-blue);
+    --btn-text: var(--color-white);
+    --btn-shadow: color-mix(in srgb, var(--color-blue) 65%, transparent);
+}
+
+.pixel-button.green {
+    --btn-bg: var(--color-green);
+    --btn-text: var(--color-white);
+    --btn-shadow: color-mix(in srgb, var(--color-green) 65%, transparent);
+}
+
+.pixel-button.red {
+    --btn-bg: var(--color-red);
+    --btn-text: var(--color-white);
+    --btn-shadow: color-mix(in srgb, var(--color-red) 65%, transparent);
+}
+
+.pixel-button.yellow {
+    --btn-bg: var(--color-yellow);
+    --btn-text: var(--color-black);
+    --btn-shadow: color-mix(in srgb, var(--color-yellow) 65%, transparent);
+}
+
+/* ---------- Sidebar ---------- */
+.pixel-sidebar {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    width: var(--sidebar-width, 260px);
+    background-color: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: 10px;
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem;
+    transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Đẩy mũi tên về bên phải */
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+    transition: all 120ms ease-out;
+    user-select: none;
+}
+
+.sidebar-header:active {
+    transform: translateY(var(--shadow-offset));
+    box-shadow: 0 0 0 var(--color-black);
+}
+
+.sidebar-brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-black);
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity 150ms;
+}
+
+.sidebar-toggle-icon {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 200ms;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 0.8rem;
+    margin-bottom: var(--shadow-offset);
+
+    border-radius: 10px;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    color: var(--text-default);
+    background-color: transparent;
+
+    border: var(--border-width) solid transparent;
+    transition: all 120ms ease-out;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.sidebar-link .icon {
+    min-width: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.sidebar-link .text {
+    opacity: 1;
+    transition: opacity 100ms;
+}
+
+.sidebar-link:hover {
+    border-color: var(--color-black);
+    background-color: var(--color-white);
+    transform: translateY(calc(var(--shadow-offset) * -1));
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+}
+
+.sidebar-link:active {
+    transform: translateY(var(--shadow-offset));
+    box-shadow: 0 0 0 var(--color-black);
+}
+
+.sidebar-link.is-active {
+    background-color: var(--color-gray);
+    border-color: var(--color-black);
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+}
+
+.sidebar-divider {
+    margin: 1rem 0;
+    height: var(--border-width);
+    background-color: var(--color-black);
+    border-radius: 2px;
+    transition: all 200ms;
+    flex-shrink: 0;
+}
+
+.pixel-sidebar.is-hidden {
+    width: 80px;
+}
+
+.pixel-sidebar.is-hidden .sidebar-header {
+    justify-content: center;
+    padding: 0.8rem 0;
+}
+
+.pixel-sidebar.is-hidden .sidebar-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.pixel-sidebar.is-hidden .sidebar-brand {
+    display: none;
+}
+
+.pixel-sidebar.is-hidden .sidebar-link {
+    justify-content: center;
+    gap: 0;
+    padding: 0.8rem 0;
+}
+
+.pixel-sidebar.is-hidden .sidebar-link .text {
+    display: none;
+}
+
+.pixel-sidebar.is-hidden .sidebar-divider {
+    margin: 1rem 0.5rem;
+}
+
+/* ---------- Main ---------- */
+main {
+    position: fixed;
+    top: 1rem;
+    bottom: 1rem;
+    right: 1rem;
+    left: calc(var(--sidebar-width, 260px) + 2rem);
+
+    background-color: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: 10px;
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+
+    overflow-y: auto;
+    padding: 2rem;
+
+    transition: left 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pixel-sidebar.is-hidden~main {
+    left: calc(80px + 2rem);
+}
+
+main::-webkit-scrollbar {
+    width: 16px;
+}
+
+main::-webkit-scrollbar-track {
+    background: var(--color-green);
+    background-image:
+        linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
+    background-size: 4px 4px;
+    border-left: var(--border-width) solid var(--color-black);
+}
+
+main::-webkit-scrollbar-thumb {
+    background: var(--color-yellow);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: 4px;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-yellow) 80%, black);
+}
+
+/* ---------- Typography inside Main ---------- */
+main h1 {
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    color: var(--color-black);
+    border-bottom: var(--border-width) solid var(--color-black);
+    display: inline-block;
+    text-shadow: 2px 2px 0px var(--color-gray);
+}
+
+.content-section {
+    display: none;
+    opacity: 0;
+}
+
+.content-section.is-active {
+    display: block;
+    animation: pixel-in 0.2s steps(4) forwards;
+}
+
+@keyframes pixel-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+#dashboard.content-section.is-active {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    grid-template-rows: repeat(24, 1fr);
+
+    height: 100%;
+    width: 100%;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* Hiệu ứng lưới khi ở chế độ chỉnh sửa */
+#dashboard.is-editing {
+    background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: calc(100% / 24) calc(100% / 24);
+}
+
+.pixel-widget {
+    position: relative;
+    background: var(--color-white);
+
+    border: var(--border-width) solid var(--color-black);
+    border-radius: 10px;
+    box-shadow: 0 2px 0 var(--color-black);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    z-index: 1;
+
+    margin: 3px;
+}
+
+.pixel-widget:hover {
+    z-index: 10;
+    /* Nổi lên trên các ô bên cạnh khi tương tác */
+}
+
+.widget-header {
+    border-bottom: var(--border-width) solid var(--color-black);
+    padding: 6px 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-body {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    overflow: auto;
+    padding: 0.5rem;
+}
+
+/* Quick Access */
+.access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 12px;
+    height: 100%;
+}
+
+.access-item {
+    border: var(--border-width) solid var(--color-black);
+    padding: 8px;
+    text-align: center;
+    background: var(--color-gray);
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--color-black);
+}
+
+.access-item:hover {
+    background: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--color-black);
+}
+
+/* Task List */
+.pixel-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--color-black);
+}
+
+.task-item span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border: 1px solid var(--color-black);
+}
+
+.pixel-input {
+    flex: 1;
+    border: var(--border-width) solid var(--color-black);
+    padding: 4px 8px;
+    background: var(--color-white);
+}
+
+.quick-add {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+/* Button nhỏ cho Widget */
+.pixel-button.mini {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+/* Edit dashboard */
+/* Hiệu ứng cho Widget khi Edit */
+@keyframes pixel-animation {
+    /* TODO: thêm hiệu ứng khi edit */
+}
+
+#dashboard.is-editing .pixel-widget {
+    animation: pixel-animation 0.2s infinite;
+    cursor: grab;
+    opacity: 0.8;
+    user-select: none;
+    border: none;
+    box-shadow: none;
+    outline: 2px dashed var(--color-black);
+}
+
+/* Hiển thị lưới nền khi Edit */
+#dashboard.is-editing {
+    background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: calc(100% / 24) calc(100% / 24);
+}
+
+/* Widget đang được kéo */
+.pixel-widget.is-dragging {
+    opacity: 0.5;
+    animation: none;
+    cursor: grabbing;
+    z-index: 100;
+}
+
+/* Ghost Preview */
+.grid-ghost {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 2px dashed rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
+    display: none;
+}
+
+/* Thêm biểu tượng kéo ở góc khi đang Edit */
+#dashboard.is-editing .pixel-widget::before {
+    content: "⠿";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 30px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    z-index: 10;
+    font-size: 18px;
+    color: #666;
+
+    pointer-events: auto !important;
+}
+
+/* Đổi màu handle khi widget đang được chọn */
+#dashboard.is-editing .pixel-widget:hover::before {
+    background: var(--color-blue);
+    color: white;
+}
+
+#dashboard.is-editing .pixel-widget .widget-body,
+#dashboard.is-editing .pixel-widget .widget-header .widget-controls {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Hiển thị ghost khi ở chế độ edit và đang kéo */
+#dashboard.is-editing .grid-ghost.is-visible {
+    display: block;
+}
+
+/* Làm nổi bật vùng ghost nếu vị trí đó hợp lệ (không va chạm) */
+.grid-ghost.valid {
+    background-color: rgba(37, 99, 235, 0.1);
+    /* Màu xanh nhẹ */
+    border-color: var(--color-blue);
+}
+
+/* Cảnh báo nếu vị trí bị đè */
+.grid-ghost.invalid {
+    background-color: rgba(239, 68, 68, 0.1);
+    /* Màu đỏ nhẹ */
+    border-color: var(--color-red);
+}

@@ -1,0 +1,80 @@
+@font-face {
+    font-family: 'VT323';
+    src: url('../assets/fonts/VT323-Regular.ttf') format('truetype');
+}
+
+:root {
+    /* Palette gốc */
+    --color-gray: #e3e4e6;
+    --color-blue: #2563eb;
+    --color-green: #10b981;
+    --color-yellow: #facc15;
+    --color-red: #ef4444;
+    --color-black: #000000;
+    --color-white: #ffffff;
+
+    /* Biến dùng chung cho UI */
+    --bg-app: var(--color-gray);
+    --text-main: var(--color-black);
+    --border-width: 2px;
+    --shadow-offset: 4px;
+
+    /* Biến động cho Button */
+    --btn-bg: var(--color-white);
+    --btn-text: var(--color-black);
+    --btn-shadow: var(--color-black);
+
+    /* Biến Sidebar */
+    --sidebar-width: 280px;
+    --sidebar-bg: var(--color-white);
+
+    /* Grid */
+    --grid-cols: 24;
+    --cell-size: calc(100% / var(--grid-cols));
+    --color-grid-line: rgba(0, 0, 0, 0.1);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    font-family: 'VT323', monospace;
+    line-height: 1.5;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+}
+
+/* Reset Form Elements */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+    appearance: none;
+    outline: none;
+    border: none;
+    background: none;
+}
+
+button {
+    cursor: pointer;
+    user-select: none;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}

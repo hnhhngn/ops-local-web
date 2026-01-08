@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Test</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/app.css" />
+</head>
+
+<body>
+    <aside class="pixel-sidebar" id="sidebar">
+        <div class="sidebar-header" onclick="toggleSidebar()">
+            <span class="sidebar-brand">IJS</span>
+            <span class="sidebar-toggle-icon">◀</span>
+        </div>
+
+        <nav>
+            <div class="sidebar-link is-active" data-page="dashboard">
+                <span class="icon">⚙️</span>
+                <span class="text">Dashboard</span>
+            </div>
+            <div class="sidebar-divider" style="margin: 1rem 0; border-top: 1px dashed black;"></div>
+            <div class="sidebar-link" id="edit-mode-toggle">
+                <span class="icon">🛠️</span>
+                <span class="text">Edit Layout</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <section id="dashboard" class="content-section is-active">
+
+            <div id="widget-tasks" class="pixel-widget" data-w="8" data-h="12"
+                style="grid-column: 1 / span 8; grid-row: 1 / span 12;">
+                <div class="widget-header blue">
+                    <span class="widget-title">Tasks Management</span>
+                    <div class="widget-controls">
+                        <button class="pixel-button yellow mini">⚙️</button>
+                    </div>
+                </div>
+                <div class="widget-body">
+                    <div class="quick-add">
+                        <input type="text" placeholder="New task..." class="pixel-input">
+                        <button class="pixel-button blue mini">+</button>
+                    </div>
+                    <ul class="pixel-list">
+                        <li class="task-item">
+                            <input type="checkbox"> <span>Fix CSS Layout</span>
+                            <span class="badge red">High</span>
+                        </li>
+                        <li class="task-item">
+                            <input type="checkbox"> <span>Review JSON API</span>
+                            <span class="badge blue">Dev</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="widget-quick-access" class="pixel-widget" data-w="16" data-h="6"
+                style="grid-column: 9 / span 16; grid-row: 1 / span 6;">
+                <div class="widget-header green">
+                    <span class="widget-title">Quick Access (Workplace)</span>
+                </div>
+                <div class="widget-body">
+                    <div class="access-grid">
+                        <div class="access-item">📁 Project_A</div>
+                        <div class="access-item">🌐 Jira_Board</div>
+                        <div class="access-item">📂 Logs</div>
+                        <div class="access-item">🛠️ Build_Tool</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="widget-auto-ops" class="pixel-widget" data-w="8" data-h="6"
+                style="grid-column: 9 / span 8; grid-row: 7 / span 6;">
+                <div class="widget-header red">
+                    <span class="widget-title">Auto Ops</span>
+                </div>
+                <div class="widget-body auto-controls">
+                    <button class="pixel-button red full-width">STARTUP WORKSPACE</button>
+                    <div class="timer-display">SHUTDOWN IN: 05:00:00</div>
+                </div>
+            </div>
+
+            <div id="widget-reminders" class="pixel-widget" data-w="8" data-h="6"
+                style="grid-column: 17 / span 8; grid-row: 7 / span 6;">
+                <div class="widget-header yellow">
+                    <span class="widget-title" style="color: black;">Reminders</span>
+                </div>
+                <div class="widget-body">
+                    <div class="reminder-item active">
+                        <span class="time">14:00</span>
+                        <span class="event">Meeting with Team</span>
+                    </div>
+                    <div class="reminder-item">
+                        <span class="time">16:30</span>
+                        <span class="event">System Backup</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="profile" class="content-section">
+            <h1>User Profile</h1>
+            <p>Thông tin người dùng...</p>
+        </section>
+
+        <section id="settings" class="content-section">
+            <h1>Settings</h1>
+            <p>Cấu hình hệ thống tại đây.</p>
+        </section>
+    </main>
+
+    <script src="js/core.js"></script>
+</body>
+
+</html>
