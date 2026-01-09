@@ -57,13 +57,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const widgetElements = Array.from(document.querySelectorAll(".pixel-widget"));
 
+  /**
+   * Load widget layout from backend
+   */
+  const loadLayout = async () => {
+    try {
+      const response = await fetch("/api/data?file=layout.json");
+      if (!response.ok) return;
+      const layout = await response.json();
+
+      layout.forEach(item => {
+        const widget = document.getElementById(item.id);
+        if (widget) {
+          widget.style.gridColumn = `${item.x1} / span ${item.w}`;
+          widget.style.gridRow = `${item.y1} / span ${item.h}`;
+          widget.dataset.w = item.w;
+          widget.dataset.h = item.h;
+        }
+      });
+      console.log("Layout loaded successfully.");
+    } catch (err) {
+      console.error("Failed to load layout:", err);
+    }
+  };
+
+  /**
+   * Save current widget layout to backend
+   */
+  const saveLayout = async () => {
+    const layout = widgetElements.map(w => {
+      const style = window.getComputedStyle(w);
+      const x1 = parseInt(style.gridColumnStart) || 1;
+      const y1 = parseInt(style.gridRowStart) || 1;
+      const wSize = parseInt(w.dataset.w) || 8;
+      const hSize = parseInt(w.dataset.h) || 6;
+
+      return { id: w.id, x1, y1, w: wSize, h: hSize };
+    });
+
+    try {
+      const response = await fetch("/api/data?file=layout.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(layout)
+      });
+      if (response.ok) console.log("Layout saved successfully.");
+    } catch (err) {
+      console.error("Failed to save layout:", err);
+    }
+  };
+
   if (editBtn) {
     editBtn.addEventListener("click", () => {
       isEditing = !isEditing;
       dashboard.classList.toggle("is-editing", isEditing);
-      
+
       opsGrid.setEditing(isEditing);
-      if (isEditing) opsGrid.updateCache();
+      if (isEditing) {
+        opsGrid.updateCache();
+      } else {
+        saveLayout(); // Save when exiting edit mode
+      }
 
       widgetElements.forEach((w, i) => {
         w.setAttribute("draggable", isEditing);
@@ -90,6 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Initial load
+  loadLayout();
 
   /* ============================== DASHBOARD TASK WIDGET ============================== */
 
@@ -231,8 +288,8 @@ document.addEventListener("DOMContentLoaded", () => {
       item.innerHTML = `${icon} ${link.label}`;
       item.title = link.path;
       item.setAttribute("data-path", link.path);
-      item.onclick = function() {
-          launchResource(this.getAttribute("data-path"));
+      item.onclick = function () {
+        launchResource(this.getAttribute("data-path"));
       };
       dashboardAccessGrid.appendChild(item);
     });
@@ -306,12 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const li = document.createElement("li");
       li.className = "task-item";
       li.style.cursor = "pointer";
-      
+
       const isToday = rem.date === todayStr;
       const dateDisplay = isToday ? "Hôm nay" : rem.date.split("-").slice(1).join("/");
-      
+
       li.innerHTML = `<span>🔔 ${dateDisplay} ${rem.time} - ${rem.eventName}</span>`;
-      
+
       li.onclick = () => {
         if (rem.link) {
           window.open(rem.link, "_blank");
@@ -366,26 +423,26 @@ document.addEventListener("DOMContentLoaded", () => {
       li.style.color = "var(--color-white)";
       li.style.cursor = "pointer";
       li.style.fontWeight = "bold";
-      
+
       li.innerHTML = `🚀 ${pset.name}`;
-      
+
       li.onclick = async () => {
-         if(!confirm(`Chạy kịch bản: ${pset.name}?`)) return;
-         
-         try {
-            const response = await fetch("/api/automation/run", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ actions: pset.actions })
-            });
-            const res = await response.json();
-            if(res.ok) alert("Kịch bản đã chạy xong!");
-            else alert("Lỗi: " + JSON.stringify(res.error));
-         } catch(e) {
-             alert("Lỗi kết nối: " + e.message);
-         }
+        if (!confirm(`Chạy kịch bản: ${pset.name}?`)) return;
+
+        try {
+          const response = await fetch("/api/automation/run", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ actions: pset.actions })
+          });
+          const res = await response.json();
+          if (res.ok) alert("Kịch bản đã chạy xong!");
+          else alert("Lỗi: " + JSON.stringify(res.error));
+        } catch (e) {
+          alert("Lỗi kết nối: " + e.message);
+        }
       };
-      
+
       dashboardAutoList.appendChild(li);
     });
 

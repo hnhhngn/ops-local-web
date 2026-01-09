@@ -228,13 +228,15 @@ main {
     border: var(--border-width) solid var(--color-black);
     border-radius: var(--radius-main);
     box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-    overflow-y: auto;
-    padding: 2rem;
+    overflow: hidden; /* Fix: No scroll at main */
+    padding: 1.5rem;
     transition: left 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
 }
 
-.pixel-sidebar.is-hidden~main {
-    left: calc(80px + 2rem);
+.pixel-sidebar.is-hidden ~ main {
+    left: calc(80px + 2rem); /* Match when sidebar is hidden */
 }
 
 main::-webkit-scrollbar {
@@ -294,12 +296,14 @@ main h1 {
 /* ============================== DASHBOARD GRID ============================== */
 
 #dashboard.content-section.is-active {
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(24, 1fr);
     grid-template-rows: repeat(24, 1fr);
-    height: 100%;
-    width: 100%;
-    gap: 0;
+    gap: 0.75rem;
+    position: relative;
+    padding: 0.5rem;
+    min-height: 0;
     overflow: hidden;
 }
 

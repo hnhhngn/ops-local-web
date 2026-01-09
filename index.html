@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <aside class="pixel-sidebar" id="sidebar">
+    <aside class="pixel-sidebar is-hidden" id="sidebar">
         <div class="sidebar-header" onclick="toggleSidebar()">
             <span class="sidebar-brand">IJS</span>
             <span class="sidebar-toggle-icon">◀</span>
@@ -51,13 +51,11 @@
 
         <section id="dashboard" class="content-section is-active">
 
-            <div id="widget-tasks" class="pixel-widget" data-w="8" data-h="12"
-                style="grid-column: 1 / span 8; grid-row: 1 / span 12;">
+            <!-- Widget 1: Tasks -->
+            <div id="widget-tasks" class="pixel-widget" data-w="8" data-h="24"
+                style="grid-column: 1 / span 8; grid-row: 1 / span 24;">
                 <div class="widget-header blue">
-                    <span class="widget-title">Tasks Management</span>
-                    <div class="widget-controls">
-                        <button class="pixel-button yellow mini">⚙️</button>
-                    </div>
+                    <span class="widget-title">TASKS</span>
                 </div>
                 <div class="widget-body">
                     <div class="quick-add">
@@ -65,44 +63,40 @@
                             id="dashboard-quick-task-input">
                         <button class="pixel-button blue mini" id="dashboard-quick-task-btn">+</button>
                     </div>
-                    <ul class="pixel-list" id="dashboard-task-list">
-                        <!-- Dynamic content -->
-                    </ul>
+                    <ul class="pixel-list" id="dashboard-task-list"></ul>
                 </div>
             </div>
 
-            <div id="widget-quick-access" class="pixel-widget" data-w="16" data-h="6"
-                style="grid-column: 9 / span 16; grid-row: 1 / span 6;">
+            <!-- Widget 2: Links (Quick Access) -->
+            <div id="widget-links" class="pixel-widget" data-w="16" data-h="9"
+                style="grid-column: 9 / span 16; grid-row: 1 / span 9;">
                 <div class="widget-header green">
-                    <span class="widget-title">Quick Access (Workplace)</span>
+                    <span class="widget-title">QUICK ACCESS</span>
                 </div>
                 <div class="widget-body">
-                    <ul class="task-list" id="dashboard-automation-list">
-                        <!-- Dynamic content -->
-                    </ul>
+                    <div class="dashboard-access-grid" id="dashboard-access-grid"></div>
                 </div>
             </div>
 
-            <div id="widget-auto-ops" class="pixel-widget" data-w="8" data-h="6"
-                style="grid-column: 9 / span 8; grid-row: 7 / span 6;">
-                <div class="widget-header red">
-                    <span class="widget-title">Auto Ops</span>
-                </div>
-                <div class="widget-body auto-controls">
-                    <button class="pixel-button red full-width">STARTUP WORKSPACE</button>
-                    <div class="timer-display">SHUTDOWN IN: 05:00:00</div>
-                </div>
-            </div>
-
-            <div id="widget-reminders" class="pixel-widget" data-w="8" data-h="6"
-                style="grid-column: 17 / span 8; grid-row: 7 / span 6;">
+            <!-- Widget 3: Reminders -->
+            <div id="widget-reminders" class="pixel-widget" data-w="8" data-h="15"
+                style="grid-column: 9 / span 8; grid-row: 10 / span 15;">
                 <div class="widget-header yellow">
-                    <span class="widget-title" style="color: black;">Reminders</span>
+                    <span class="widget-title" style="color: black;">REMINDERS</span>
                 </div>
                 <div class="widget-body">
-                    <ul class="task-list" id="dashboard-reminders-list">
-                        <!-- Dynamic content -->
-                    </ul>
+                    <ul class="pixel-list" id="dashboard-reminders-list"></ul>
+                </div>
+            </div>
+
+            <!-- Widget 4: Automation -->
+            <div id="widget-automation" class="pixel-widget" data-w="8" data-h="15"
+                style="grid-column: 17 / span 8; grid-row: 10 / span 15;">
+                <div class="widget-header red">
+                    <span class="widget-title">AUTOMATION</span>
+                </div>
+                <div class="widget-body">
+                    <ul class="pixel-list" id="dashboard-automation-list"></ul>
                 </div>
             </div>
 
