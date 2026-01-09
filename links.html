@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Quick Access - IJS Ops</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <style>
+        .management-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .link-form {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1.5rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .link-list-container {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .link-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .link-table th,
+        .link-table td {
+            border: var(--border-width) solid var(--color-black);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .link-table th {
+            background: var(--color-gray);
+            text-transform: uppercase;
+        }
+
+        .type-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        select.pixel-input {
+            appearance: auto;
+            background: var(--color-white);
+        }
+
+        .path-display {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="pixel-sidebar" id="sidebar">
+        <div class="sidebar-header" onclick="location.href='index.html'">
+            <span class="sidebar-brand">IJS</span>
+            <span class="sidebar-toggle-icon">◀</span>
+        </div>
+
+        <nav>
+            <div class="sidebar-link" onclick="location.href='index.html'">
+                <span class="icon">⚙️</span>
+                <span class="text">Dashboard</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='tasks.html'">
+                <span class="icon">📝</span>
+                <span class="text">Tasks</span>
+            </div>
+            <div class="sidebar-link is-active">
+                <span class="icon">🚀</span>
+                <span class="text">Quick Access</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="management-container">
+            <header>
+                <h1>QUẢN LÝ QUICK ACCESS</h1>
+            </header>
+
+            <section class="link-form">
+                <h2>THÊM ĐƯỜNG DẪN MỚI</h2>
+                <form id="link-form" class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="label">Tên hiển thị</label>
+                        <input type="text" id="label" class="pixel-input" placeholder="Ví dụ: Project Alpha" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="path">Đường dẫn (URL / Folder / File)</label>
+                        <input type="text" id="path" class="pixel-input" placeholder="C:\Projects\... hoặc https://..."
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Loại tài nguyên</label>
+                        <select id="type" class="pixel-input">
+                            <option value="url">🌐 Website (URL)</option>
+                            <option value="folder">📁 Thư mục (Folder)</option>
+                            <option value="file">📄 Tập tin (File)</option>
+                            <option value="tool">🛠️ Công cụ (Tool)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="group">Phân nhóm</label>
+                        <input type="text" id="group" class="pixel-input" placeholder="Ví dụ: Công việc, Giải trí">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2; align-items: flex-end;">
+                        <button type="submit" class="pixel-button blue">LƯU ĐƯỜNG DẪN</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="link-list-container">
+                <h2>DANH SÁCH TRUY CẬP NHANH</h2>
+                <table class="link-table">
+                    <thead>
+                        <tr>
+                            <th>Tên hiển thị</th>
+                            <th>Loại</th>
+                            <th>Đường dẫn</th>
+                            <th>Nhóm</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="link-list-body">
+                        <!-- Content loaded by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/links.js" defer></script>
+</body>
+
+</html>

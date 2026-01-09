@@ -501,5 +501,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial load
   loadDashboardTasks();
+
+  /* ============================== DASHBOARD QUICK ACCESS ============================== */
+
+  const dashboardAccessGrid = document.getElementById("dashboard-access-grid");
+
+  /**
+   * Load Quick Access items
+   */
+  const loadDashboardAccess = async () => {
+    if (!dashboardAccessGrid) return;
+
+    try {
+      const response = await fetch("/api/data?file=links.json");
+      if (!response.ok) return;
+      const data = await response.json();
+      const links = Array.isArray(data) ? data : (data ? [data] : []);
+      renderDashboardAccess(links);
+    } catch (err) {
+      console.error("Dashboard access load error:", err);
+    }
+  };
+
+  /**
+   * Render Quick Access items
+   */
+  const renderDashboardAccess = (links) => {
+    if (!dashboardAccessGrid) return;
+    dashboardAccessGrid.innerHTML = "";
+
+    links.forEach((link) => {
+      const item = document.createElement("div");
+      item.className = "access-item";
+      const icon = link.type === "url" ? "🌐" : (link.type === "folder" ? "📁" : (link.type === "file" ? "📄" : "🛠️"));
+      item.innerHTML = `${icon} ${link.label}`;
+      item.title = link.path;
+      // Use data attribute and explicit listener to avoid backslash escaping issues in HTML attributes
+      item.setAttribute("data-path", link.path);
+      item.onclick = function() {
+          launchResource(this.getAttribute("data-path"));
+      };
+      dashboardAccessGrid.appendChild(item);
+    });
+
+    if (links.length === 0) {
+      dashboardAccessGrid.innerHTML = '<div class="access-item" onclick="location.href=\'links.html\'">➕ Add Link</div>';
+    }
+  };
+
+  /**
+   * API call to launch resource
+   */
+  const launchResource = async (path) => {
+    try {
+      const response = await fetch("/api/launch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: path })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.alreadyOpen) {
+          alert("Tài nguyên này đang được mở sẵn.");
+        }
+      }
+    } catch (err) {
+      console.error("Launch error:", err);
+    }
+  };
+
+  // Initial load
+  loadDashboardAccess();
 });
 

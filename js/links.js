@@ -1,0 +1,189 @@
+/**
+ * Quick Access Management Logic
+ */
+
+const API_DATA_URL = "/api/data?file=links.json";
+const API_LAUNCH_URL = "/api/launch";
+let allLinks = [];
+let editingLinkId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadLinks();
+
+  const form = document.getElementById("link-form");
+  if (form) {
+    form.addEventListener("submit", handleFormSubmit);
+  }
+
+  // Handle launch clicks safely using event delegation
+  const tbody = document.getElementById("link-list-body");
+  if (tbody) {
+    tbody.addEventListener("click", (e) => {
+      const btn = e.target.closest(".btn-launch");
+      if (btn) {
+        const path = btn.getAttribute("data-path");
+        if (path) launchResource(path);
+      }
+    });
+  }
+});
+
+/**
+ * Fetch links from the server
+ */
+async function loadLinks() {
+  try {
+    const response = await fetch(API_DATA_URL);
+    if (!response.ok) throw new Error("Failed to fetch links");
+    const data = await response.json();
+    // Normalize to array: PowerShell often serializes a single item as an object, not a [object]
+    allLinks = Array.isArray(data) ? data : (data ? [data] : []);
+    renderLinks();
+  } catch (error) {
+    console.error("Error loading links:", error);
+  }
+}
+
+/**
+ * Render links table
+ */
+function renderLinks() {
+  const tbody = document.getElementById("link-list-body");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  allLinks.forEach((link) => {
+    const tr = document.createElement("tr");
+
+    const icon = getTypeIcon(link.type);
+
+    tr.innerHTML = `
+            <td><strong>${link.label}</strong></td>
+            <td>${icon} ${link.type.toUpperCase()}</td>
+            <td><div class="path-display" title="${link.path}">${link.path}</div></td>
+            <td><span class="badge blue">${link.group || "Chung"}</span></td>
+            <td class="action-btns">
+                <button class="pixel-button green mini btn-launch" data-path="${link.path}">Mở</button>
+                <button class="pixel-button yellow mini" onclick="editLink('${link.id}')">Sửa</button>
+                <button class="pixel-button red mini" onclick="deleteLink('${link.id}')">Xóa</button>
+            </td>
+        `;
+    tbody.appendChild(tr);
+  });
+}
+
+/**
+ * Handle form submission
+ */
+async function handleFormSubmit(e) {
+  e.preventDefault();
+
+  const formData = {
+    id: editingLinkId || "link-" + Date.now(),
+    label: document.getElementById("label").value,
+    path: document.getElementById("path").value,
+    type: document.getElementById("type").value,
+    group: document.getElementById("group").value || "Chung",
+  };
+
+  let updatedList;
+  if (editingLinkId) {
+    updatedList = allLinks.map((l) => (l.id === editingLinkId ? formData : l));
+  } else {
+    updatedList = [...allLinks, formData];
+  }
+
+  const success = await saveLinksToServer(updatedList);
+  if (success) {
+    allLinks = updatedList;
+    editingLinkId = null;
+    document.getElementById("link-form").reset();
+    const btn = document.querySelector("#link-form button[type='submit']");
+    if (btn) btn.innerText = "LƯU ĐƯỜNG DẪN";
+    renderLinks();
+  }
+}
+
+/**
+ * Save to server
+ */
+async function saveLinksToServer(list) {
+  try {
+    const response = await fetch(API_DATA_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(list),
+    });
+    return response.ok;
+  } catch (error) {
+    alert("Lỗi khi lưu dữ liệu!");
+    return false;
+  }
+}
+
+/**
+ * Trigger local launch
+ */
+async function launchResource(path) {
+  try {
+    const response = await fetch(API_LAUNCH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: path }),
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      alert("Lỗi khi mở tài nguyên: " + (err.error ? err.error.message : "Không xác định"));
+    } else {
+      const result = await response.json();
+      if (result.alreadyOpen) {
+        alert("Tài nguyên/Thư mục này đang được mở sẵn trên hệ thống.");
+      }
+    }
+  } catch (error) {
+    console.error("Launch error:", error);
+  }
+}
+
+/**
+ * Edit mode
+ */
+function editLink(id) {
+  const link = allLinks.find((l) => l.id === id);
+  if (!link) return;
+
+  editingLinkId = id;
+  document.getElementById("label").value = link.label;
+  document.getElementById("path").value = link.path;
+  document.getElementById("type").value = link.type;
+  document.getElementById("group").value = link.group;
+
+  const btn = document.querySelector("#link-form button[type='submit']");
+  if (btn) btn.innerText = "CẬP NHẬT ĐƯỜNG DẪN";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/**
+ * Delete
+ */
+async function deleteLink(id) {
+  if (!confirm("Bạn có chắc chắn muốn xóa đường dẫn này?")) return;
+
+  const updatedList = allLinks.filter((l) => l.id !== id);
+  const success = await saveLinksToServer(updatedList);
+  if (success) {
+    allLinks = updatedList;
+    renderLinks();
+  }
+}
+
+function getTypeIcon(type) {
+  switch (type) {
+    case "url": return "🌐";
+    case "folder": return "📁";
+    case "file": return "📄";
+    case "tool": return "🛠️";
+    default: return "🔗";
+  }
+}

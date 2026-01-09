@@ -61,7 +61,8 @@ function Write-JsonResponse($Response, $StatusCode, $Payload) {
         $Response.StatusCode = 500
     }
 
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    $bytes = $utf8.GetBytes($json)
     $Response.ContentLength64 = $bytes.Length
     $Response.OutputStream.Write($bytes, 0, $bytes.Length)
     $Response.OutputStream.Flush()
@@ -74,9 +75,11 @@ function Write-JsonResponse($Response, $StatusCode, $Payload) {
 function Read-JsonBody($Request) {
     if (-not $Request.HasEntityBody) { return $null }
 
+    # Force UTF-8 for reading request body to handle Unicode characters (VN, etc.)
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
     $reader = New-Object System.IO.StreamReader(
         $Request.InputStream,
-        $Request.ContentEncoding
+        $utf8
     )
 
     try {
@@ -173,7 +176,9 @@ function Handle-ApiRequest($Request, $Response) {
 
     $Method = $Request.HttpMethod
     $Path = $Request.Url.AbsolutePath
-    switch ("$Method $Path") {
+    $MatchKey = "$Method $Path".Trim()
+
+    switch ($MatchKey) {
         # -------------------------------------------------
         # Generic Data CRUD
         # Query: ?file=filename.json
@@ -195,12 +200,14 @@ function Handle-ApiRequest($Request, $Response) {
             }
 
             try {
-                $content = Get-Content $FilePath -Raw -ErrorAction Stop
+                $content = Get-Content $FilePath -Raw -Encoding utf8 -ErrorAction Stop
                 $data = $content | ConvertFrom-Json -ErrorAction Stop
                 Write-JsonResponse $Response 200 $data
+                break
             }
             catch {
                 Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "READ_ERROR"; message = "Failed to read or parse data file" } }
+                break
             }
         }
 
@@ -224,9 +231,46 @@ function Handle-ApiRequest($Request, $Response) {
                 $json = $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
                 Set-Content -Path $FilePath -Value $json -Force -ErrorAction Stop
                 Write-JsonResponse $Response 200 @{ ok = $true }
+                break
             }
             catch {
                 Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "WRITE_ERROR"; message = "Failed to write data file" } }
+                break
+            }
+        }
+
+        "POST /api/launch" {
+            $Payload = Read-JsonBody $Request
+            $Path = $Payload.path
+            
+            if ([string]::IsNullOrWhiteSpace($Path)) {
+                return Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "MISSING_PATH"; message = "Path is required" } }
+            }
+
+            try {
+                $alreadyOpen = $false
+                if ($Path -notlike "http*") {
+                    # Check if already open (only for local paths)
+                    try {
+                        $NormalizedPath = ($Path.TrimEnd('\')).ToLower()
+                        $shell = New-Object -ComObject Shell.Application
+                        $existing = $shell.Windows() | Where-Object {
+                            try { return ($_.Document.Folder.Self.Path.TrimEnd('\')).ToLower() -eq $NormalizedPath } catch { return $false }
+                        }
+                        if ($existing) { $alreadyOpen = $true }
+                    }
+                    catch { }
+                }
+
+                # Use Start-Process as requested
+                Start-Process $Path -ErrorAction Stop
+                Write-JsonResponse $Response 200 @{ ok = $true; alreadyOpen = $alreadyOpen }
+                break
+            }
+            catch {
+                Write-Host "[ERROR] Failed to launch: $Path - " $_.Exception.Message
+                Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "LAUNCH_ERROR"; message = $_.Exception.Message } }
+                break
             }
         }
 
@@ -235,13 +279,15 @@ function Handle-ApiRequest($Request, $Response) {
                 ok   = $true
                 time = (Get-Date).ToString("s")
             }
+            break
         }
         default {
+            Write-Host "[WARNING] No matching handler for: '$MatchKey'"
             Write-JsonResponse $Response 404 @{
                 ok    = $false
                 error = @{
                     code    = "NOT_IMPLEMENTED"
-                    message = "API endpoint not implemented"
+                    message = "API endpoint not implemented: $MatchKey"
                 }
             }
         }

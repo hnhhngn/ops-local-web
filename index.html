@@ -17,14 +17,17 @@
         </div>
 
         <nav>
-            <div class="sidebar-link is-active" data-page="dashboard">
+            <div class="sidebar-link is-active">
                 <span class="icon">⚙️</span>
                 <span class="text">Dashboard</span>
             </div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-link" id="edit-mode-toggle">
-                <span class="icon">🛠️</span>
-                <span class="text">Edit Layout</span>
+            <div class="sidebar-link" onclick="location.href='tasks.html'">
+                <span class="icon">📝</span>
+                <span class="text">Tasks</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='links.html'">
+                <span class="icon">🚀</span>
+                <span class="text">Quick Access</span>
             </div>
         </nav>
     </aside>
@@ -58,11 +61,8 @@
                     <span class="widget-title">Quick Access (Workplace)</span>
                 </div>
                 <div class="widget-body">
-                    <div class="access-grid">
-                        <div class="access-item">📁 Project_A</div>
-                        <div class="access-item">🌐 Jira_Board</div>
-                        <div class="access-item">📂 Logs</div>
-                        <div class="access-item">🛠️ Build_Tool</div>
+                    <div class="access-grid" id="dashboard-access-grid">
+                        <!-- Dynamic content -->
                     </div>
                 </div>
             </div>
