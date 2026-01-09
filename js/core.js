@@ -1,10 +1,17 @@
-// core.js
+/* ============================== SIDEBAR NAVIGATION ============================== */
 
+/**
+ * Toggle sidebar visibility state
+ * @returns {void}
+ */
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("is-hidden");
 }
 
+/**
+ * Handle sidebar navigation and content section switching
+ */
 document.addEventListener("DOMContentLoaded", () => {
   const sidebarLinks = document.querySelectorAll(".sidebar-link");
   const sections = document.querySelectorAll(".content-section");
@@ -23,30 +30,48 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// --- EDIT DASHBOARD LOGIC WITH DATASET SIZE ---
+/* ============================== DASHBOARD EDIT MODE ============================== */
+
+/**
+ * Manages dashboard widget drag-and-drop functionality in edit mode
+ */
 document.addEventListener("DOMContentLoaded", () => {
   const dashboard = document.getElementById("dashboard");
   const editBtn = document.getElementById("edit-mode-toggle");
   let isEditing = false;
 
-  // 1. Khởi tạo Ghost Element
+  // Create visual preview element for drag feedback
   const ghost = document.createElement("div");
   ghost.className = "grid-ghost";
   dashboard.appendChild(ghost);
 
-  // SỬA ĐỔI: Hàm lấy Metrics dựa trên DATASET (Root Cause Fix)
+  // Cache dashboard metrics to minimize reflow calculations
+  let dashboardRect = null;
+  let colSize = 0;
+  let rowSize = 0;
+
+  /**
+   * Updates cached dashboard layout metrics
+   * @returns {void}
+   */
+  const updateLayoutCache = () => {
+    dashboardRect = dashboard.getBoundingClientRect();
+    colSize = dashboardRect.width / 24;
+    rowSize = dashboardRect.height / 24;
+  };
+
+  /**
+   * Retrieves widget position and dimensions from element attributes
+   * Workaround: Uses dataset instead of computed styles to avoid Chrome grid parsing issues
+   * @param {HTMLElement} el - Widget element
+   * @returns {{id: string, x1: number, y1: number, x2: number, y2: number, w: number, h: number}}
+   */
   const getWidgetMetrics = (el) => {
-    const style = window.getComputedStyle(el);
+    // Get position from inline styles (already parsed by browser)
+    const colStart = parseInt(el.style.gridColumnStart) || 1;
+    const rowStart = parseInt(el.style.gridRowStart) || 1;
 
-    // Tọa độ Start vẫn lấy từ style để biết vị trí hiện tại
-    const colStart =
-      parseInt(el.style.gridColumnStart) ||
-      parseInt(style.gridColumnStart) ||
-      1;
-    const rowStart =
-      parseInt(el.style.gridRowStart) || parseInt(style.gridRowStart) || 1;
-
-    // Kích thước lấy TUYỆT ĐỐI từ dataset (Tránh lỗi 8x6 của Chrome)
+    // Get dimensions from data attributes (source of truth for widget size)
     const w = parseInt(el.dataset.w) || 8;
     const h = parseInt(el.dataset.h) || 6;
 
@@ -61,26 +86,61 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
+  /**
+   * Detects collision between proposed position and existing widgets
+   * @param {{x1: number, y1: number, x2: number, y2: number}} proposed - Target position
+   * @param {HTMLElement[]} otherWidgets - Widgets to check against
+   * @param {string} excludeId - Widget ID to skip in collision check
+   * @returns {boolean} True if collision detected
+   */
+  const checkCollision = (proposed, otherWidgets, excludeId) => {
+    return otherWidgets.some((other) => {
+      if (other.id === excludeId) return false;
+      const m = getWidgetMetrics(other);
+      return !(
+        proposed.x2 <= m.x1 ||
+        proposed.x1 >= m.x2 ||
+        proposed.y2 <= m.y1 ||
+        proposed.y1 >= m.y2
+      );
+    });
+  };
+
+  /**
+   * Hides drag preview ghost element
+   * @returns {void}
+   */
   const hideGhost = () => {
     ghost.classList.remove("is-visible", "valid", "invalid");
   };
 
-  // 2. Toggle Mode
+  // Cache widget elements and button text for frequent access
+  let widgetElements = Array.from(document.querySelectorAll(".pixel-widget"));
+  const editBtnText = editBtn?.querySelector(".text");
+
+  /**
+   * Toggle edit mode on/off
+   */
   if (editBtn) {
     editBtn.addEventListener("click", () => {
       isEditing = !isEditing;
       dashboard.classList.toggle("is-editing", isEditing);
-      document.querySelectorAll(".pixel-widget").forEach((w, i) => {
+      updateLayoutCache();
+
+      widgetElements.forEach((w, i) => {
         w.setAttribute("draggable", isEditing);
         if (!w.id) w.id = `widget-auto-${i}`;
       });
-      editBtn.querySelector(".text").innerText = isEditing
-        ? "Save Layout"
-        : "Edit Layout";
+
+      if (editBtnText) {
+        editBtnText.innerText = isEditing ? "Save Layout" : "Edit Layout";
+      }
     });
   }
 
-  // 3. Drag Events
+  /**
+   * Handle widget drag start - only from drag handle area (top-left 40x40px)
+   */
   dashboard.addEventListener("dragstart", (e) => {
     if (!isEditing) return;
 
@@ -92,7 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Vùng an toàn (Top-Left 40px)
+    // Safeguard: Only allow dragging from drag handle area (top-left 40x40px)
+    // Prevents accidental drags when clicking content
     if (x > 40 || y > 40) {
       e.preventDefault();
       return;
@@ -113,6 +174,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ghost.classList.add("is-visible");
   });
 
+  /**
+   * Update ghost preview position during drag and detect collisions
+   */
   dashboard.addEventListener("dragover", (e) => {
     if (!isEditing) return;
     e.preventDefault();
@@ -120,41 +184,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const draggingWidget = document.querySelector(".is-dragging");
     if (!draggingWidget) return;
 
-    const rect = dashboard.getBoundingClientRect();
-    const colSize = rect.width / 24;
-    const rowSize = rect.height / 24;
+    // Recalculate layout metrics on drag move for responsive accuracy
+    updateLayoutCache();
 
-    // Lấy size từ dataset của widget đang kéo
     const w = parseInt(draggingWidget.dataset.w);
     const h = parseInt(draggingWidget.dataset.h);
 
-    let newCol = Math.floor((e.clientX - rect.left) / colSize) + 1;
-    let newRow = Math.floor((e.clientY - rect.top) / rowSize) + 1;
+    let newCol = Math.floor((e.clientX - dashboardRect.left) / colSize) + 1;
+    let newRow = Math.floor((e.clientY - dashboardRect.top) / rowSize) + 1;
 
     newCol = Math.max(1, Math.min(newCol, 25 - w));
     newRow = Math.max(1, Math.min(newRow, 25 - h));
 
-    // Cập nhật vị trí Ghost mà không làm thay đổi các widget khác
+    // Cập nhật vị trí Ghost
     ghost.style.gridColumn = `${newCol} / span ${w}`;
     ghost.style.gridRow = `${newRow} / span ${h}`;
 
-    ghost.style.gridColumnStart = newCol;
-    ghost.style.gridRowStart = newRow;
-
     const proposed = { x1: newCol, y1: newRow, x2: newCol + w, y2: newRow + h };
-    const otherWidgets = Array.from(
-      document.querySelectorAll(".pixel-widget")
-    ).filter((w) => w.id !== draggingWidget.id);
+    const otherWidgets = widgetElements.filter(
+      (w) => w.id !== draggingWidget.id
+    );
 
-    const isColliding = otherWidgets.some((other) => {
-      const m = getWidgetMetrics(other);
-      return !(
-        proposed.x2 <= m.x1 ||
-        proposed.x1 >= m.x2 ||
-        proposed.y2 <= m.y1 ||
-        proposed.y1 >= m.y2
-      );
-    });
+    const isColliding = checkCollision(
+      proposed,
+      otherWidgets,
+      draggingWidget.id
+    );
 
     if (isColliding) {
       ghost.classList.add("invalid");
@@ -165,6 +220,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  /**
+   * Handle drop to finalize widget position if no collision detected
+   */
   dashboard.addEventListener("drop", (e) => {
     if (!isEditing) return;
     e.preventDefault();
@@ -174,32 +232,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const draggingWidget = document.getElementById(id);
     if (!draggingWidget) return;
 
-    const rect = dashboard.getBoundingClientRect();
-    const colSize = rect.width / 24;
-    const rowSize = rect.height / 24;
-
     const w = parseInt(draggingWidget.dataset.w);
     const h = parseInt(draggingWidget.dataset.h);
 
-    let newCol = Math.floor((e.clientX - rect.left) / colSize) + 1;
-    let newRow = Math.floor((e.clientY - rect.top) / rowSize) + 1;
+    let newCol = Math.floor((e.clientX - dashboardRect.left) / colSize) + 1;
+    let newRow = Math.floor((e.clientY - dashboardRect.top) / rowSize) + 1;
     newCol = Math.max(1, Math.min(newCol, 25 - w));
     newRow = Math.max(1, Math.min(newRow, 25 - h));
 
     const proposed = { x1: newCol, y1: newRow, x2: newCol + w, y2: newRow + h };
-    const otherWidgets = Array.from(
-      document.querySelectorAll(".pixel-widget")
-    ).filter((w) => w.id !== id);
+    const otherWidgets = widgetElements.filter((w) => w.id !== id);
 
-    const isColliding = otherWidgets.some((other) => {
-      const m = getWidgetMetrics(other);
-      return !(
-        proposed.x2 <= m.x1 ||
-        proposed.x1 >= m.x2 ||
-        proposed.y2 <= m.y1 ||
-        proposed.y1 >= m.y2
-      );
-    });
+    const isColliding = checkCollision(proposed, otherWidgets, id);
 
     if (!isColliding) {
       draggingWidget.style.gridColumn = `${newCol} / span ${w}`;
@@ -207,10 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  /**
+   * Clean up drag state when drag ends
+   */
   dashboard.addEventListener("dragend", () => {
-    document
-      .querySelectorAll(".pixel-widget")
-      .forEach((w) => w.classList.remove("is-dragging"));
+    widgetElements.forEach((w) => w.classList.remove("is-dragging"));
     hideGhost();
   });
 });

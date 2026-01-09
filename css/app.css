@@ -1,4 +1,5 @@
-/* ---------- Button --------- */
+/* ============================== BUTTON COMPONENT ============================== */
+
 .pixel-button {
     display: inline-flex;
     align-items: center;
@@ -6,10 +7,8 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: 10px;
-
     font-size: 1.5rem;
     text-transform: uppercase;
-
     background-color: var(--btn-bg);
     color: var(--btn-text);
     border: var(--border-width) solid var(--color-black);
@@ -20,6 +19,12 @@
 .pixel-button:active {
     transform: translate(0, var(--shadow-offset));
     box-shadow: 0 0 0 var(--color-black);
+}
+
+.pixel-button.mini {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    border-radius: 4px;
 }
 
 .pixel-button.blue {
@@ -46,7 +51,11 @@
     --btn-shadow: color-mix(in srgb, var(--color-yellow) 65%, transparent);
 }
 
-/* ---------- Sidebar ---------- */
+.full-width {
+    width: 100%;
+}
+
+/* ============================== SIDEBAR & NAVIGATION ============================== */
 .pixel-sidebar {
     position: fixed;
     top: 1rem;
@@ -57,7 +66,6 @@
     border: var(--border-width) solid var(--color-black);
     border-radius: 10px;
     box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-
     display: flex;
     flex-direction: column;
     padding: 0.8rem;
@@ -70,7 +78,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* Đẩy mũi tên về bên phải */
     padding: 0.8rem;
     margin-bottom: 1rem;
     border-radius: 10px;
@@ -111,13 +118,11 @@
     gap: 1rem;
     padding: 0.8rem;
     margin-bottom: var(--shadow-offset);
-
     border-radius: 10px;
     font-size: 1.25rem;
     text-transform: uppercase;
     color: var(--text-default);
     background-color: transparent;
-
     border: var(--border-width) solid transparent;
     transition: all 120ms ease-out;
     cursor: pointer;
@@ -165,6 +170,7 @@
     flex-shrink: 0;
 }
 
+/* Sidebar collapsed state */
 .pixel-sidebar.is-hidden {
     width: 80px;
 }
@@ -196,22 +202,19 @@
     margin: 1rem 0.5rem;
 }
 
-/* ---------- Main ---------- */
+/* ============================== MAIN CONTENT AREA ============================== */
 main {
     position: fixed;
     top: 1rem;
     bottom: 1rem;
     right: 1rem;
     left: calc(var(--sidebar-width, 260px) + 2rem);
-
     background-color: var(--color-white);
     border: var(--border-width) solid var(--color-black);
     border-radius: 10px;
     box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-
     overflow-y: auto;
     padding: 2rem;
-
     transition: left 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -225,8 +228,7 @@ main::-webkit-scrollbar {
 
 main::-webkit-scrollbar-track {
     background: var(--color-green);
-    background-image:
-        linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
     background-size: 4px 4px;
     border-left: var(--border-width) solid var(--color-black);
 }
@@ -241,7 +243,8 @@ main::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--color-yellow) 80%, black);
 }
 
-/* ---------- Typography inside Main ---------- */
+/* ============================== TYPOGRAPHY ============================== */
+
 main h1 {
     font-family: 'VT323', monospace;
     text-transform: uppercase;
@@ -273,46 +276,35 @@ main h1 {
     }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
+/* ============================== DASHBOARD GRID ============================== */
+
 #dashboard.content-section.is-active {
     display: grid;
     grid-template-columns: repeat(24, 1fr);
     grid-template-rows: repeat(24, 1fr);
-
     height: 100%;
     width: 100%;
     gap: 0;
     overflow: hidden;
 }
 
-/* Hiệu ứng lưới khi ở chế độ chỉnh sửa */
-#dashboard.is-editing {
-    background-image:
-        linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: calc(100% / 24) calc(100% / 24);
-}
+/* ============================== WIDGET COMPONENT ============================== */
 
 .pixel-widget {
     position: relative;
     background: var(--color-white);
-
     border: var(--border-width) solid var(--color-black);
     border-radius: 10px;
     box-shadow: 0 2px 0 var(--color-black);
-
     display: flex;
     flex-direction: column;
-
     overflow: hidden;
     z-index: 1;
-
     margin: 3px;
 }
 
 .pixel-widget:hover {
     z-index: 10;
-    /* Nổi lên trên các ô bên cạnh khi tương tác */
 }
 
 .widget-header {
@@ -320,48 +312,57 @@ main h1 {
     padding: 6px 10px;
     font-weight: bold;
     text-transform: uppercase;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.widget-header.blue {
+    background-color: var(--color-blue);
+    color: var(--color-white);
+}
+
+.widget-header.green {
+    background-color: var(--color-green);
+    color: var(--color-white);
+}
+
+.widget-header.red {
+    background-color: var(--color-red);
+    color: var(--color-white);
+}
+
+.widget-header.yellow {
+    background-color: var(--color-yellow);
+    color: var(--color-black);
+}
+
 .widget-body {
     flex: 1;
-
     display: flex;
     flex-direction: column;
     gap: 10px;
-
     overflow: auto;
     padding: 0.5rem;
 }
 
-/* Quick Access */
-.access-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    grid-auto-rows: 1fr;
-    gap: 12px;
-    height: 100%;
-}
+/* ============================== INPUT COMPONENTS ============================== */
 
-.access-item {
+.pixel-input {
+    flex: 1;
     border: var(--border-width) solid var(--color-black);
-    padding: 8px;
-    text-align: center;
-    background: var(--color-gray);
-    cursor: pointer;
-    box-shadow: 0 2px 0 var(--color-black);
-}
-
-.access-item:hover {
+    padding: 4px 8px;
     background: var(--color-white);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--color-black);
 }
 
-/* Task List */
+.quick-add {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+/* ============================== TASK LIST ============================== */
+
 .pixel-list {
     list-style: none;
     display: flex;
@@ -391,73 +392,59 @@ main h1 {
     border: 1px solid var(--color-black);
 }
 
-.pixel-input {
-    flex: 1;
+.badge.red {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--color-red);
+}
+
+.badge.blue {
+    background-color: rgba(37, 99, 235, 0.1);
+    border-color: var(--color-blue);
+}
+
+/* ============================== QUICK ACCESS GRID ============================== */
+
+.access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 12px;
+    height: 100%;
+}
+
+.access-item {
     border: var(--border-width) solid var(--color-black);
-    padding: 4px 8px;
+    padding: 8px;
+    text-align: center;
+    background: var(--color-gray);
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--color-black);
+}
+
+.access-item:hover {
     background: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--color-black);
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
 }
 
-.quick-add {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-}
+/* ============================== EDIT MODE ============================== */
 
-/* Button nhỏ cho Widget */
-.pixel-button.mini {
-    padding: 4px 8px;
-    font-size: 0.9rem;
-    border-radius: 4px;
-}
-
-.full-width {
-    width: 100%;
-}
-
-/* Edit dashboard */
-/* Hiệu ứng cho Widget khi Edit */
-@keyframes pixel-animation {
-    /* TODO: thêm hiệu ứng khi edit */
+#dashboard.is-editing {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: calc(100% / 24) calc(100% / 24);
 }
 
 #dashboard.is-editing .pixel-widget {
-    animation: pixel-animation 0.2s infinite;
     cursor: grab;
     opacity: 0.8;
     user-select: none;
     border: none;
     box-shadow: none;
     outline: 2px dashed var(--color-black);
+    transition: opacity 120ms ease-out;
 }
 
-/* Hiển thị lưới nền khi Edit */
-#dashboard.is-editing {
-    background-image:
-        linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-    background-size: calc(100% / 24) calc(100% / 24);
-}
-
-/* Widget đang được kéo */
-.pixel-widget.is-dragging {
-    opacity: 0.5;
-    animation: none;
-    cursor: grabbing;
-    z-index: 100;
-}
-
-/* Ghost Preview */
-.grid-ghost {
-    background-color: rgba(0, 0, 0, 0.05);
-    border: 2px dashed rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
-    pointer-events: none;
-    z-index: 1;
-    display: none;
-}
-
-/* Thêm biểu tượng kéo ở góc khi đang Edit */
 #dashboard.is-editing .pixel-widget::before {
     content: "⠿";
     position: absolute;
@@ -474,14 +461,13 @@ main h1 {
     z-index: 10;
     font-size: 18px;
     color: #666;
-
     pointer-events: auto !important;
 }
 
-/* Đổi màu handle khi widget đang được chọn */
 #dashboard.is-editing .pixel-widget:hover::before {
     background: var(--color-blue);
-    color: white;
+    color: var(--color-white);
+    transition: background-color 120ms ease-out, color 120ms ease-out;
 }
 
 #dashboard.is-editing .pixel-widget .widget-body,
@@ -490,21 +476,36 @@ main h1 {
     opacity: 0.8;
 }
 
-/* Hiển thị ghost khi ở chế độ edit và đang kéo */
+/* Widget dragging state */
+.pixel-widget.is-dragging {
+    opacity: 0.5;
+    animation: none;
+    cursor: grabbing;
+    z-index: 100;
+}
+
+/* ============================== GHOST PREVIEW ============================== */
+
+.grid-ghost {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 2px dashed rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
+    display: none;
+    transition: background-color 60ms ease-out, border-color 60ms ease-out;
+}
+
 #dashboard.is-editing .grid-ghost.is-visible {
     display: block;
 }
 
-/* Làm nổi bật vùng ghost nếu vị trí đó hợp lệ (không va chạm) */
 .grid-ghost.valid {
     background-color: rgba(37, 99, 235, 0.1);
-    /* Màu xanh nhẹ */
     border-color: var(--color-blue);
 }
 
-/* Cảnh báo nếu vị trí bị đè */
 .grid-ghost.invalid {
     background-color: rgba(239, 68, 68, 0.1);
-    /* Màu đỏ nhẹ */
     border-color: var(--color-red);
 }
