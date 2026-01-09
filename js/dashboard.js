@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       li.innerHTML = `
         <input type="checkbox" ${task.progress === 100 ? "checked" : ""}> 
-        <span onclick="location.href='tasks.html'" style="cursor:pointer">${task.name}</span>
+        <span onclick="location.href='pages/tasks.html'" style="cursor:pointer">${task.name}</span>
         ${priorityClass ? `<span class="badge ${priorityClass}">${task.priority}</span>` : ""}
       `;
       dashboardTaskList.appendChild(li);
@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (links.length === 0) {
-      dashboardAccessGrid.innerHTML = '<div class="access-item" onclick="location.href=\'links.html\'">➕ Add Link</div>';
+      dashboardAccessGrid.innerHTML = '<div class="access-item" onclick="location.href=\'pages/links.html\'">➕ Add Link</div>';
     }
   };
 
@@ -373,14 +373,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (rem.link) {
           window.open(rem.link, "_blank");
         } else {
-          location.href = "reminders.html";
+          location.href = "pages/reminders.html";
         }
       };
       dashboardRemindersList.appendChild(li);
     });
 
     if (sorted.length === 0) {
-      dashboardRemindersList.innerHTML = '<li class="task-item" onclick="location.href=\'reminders.html\'">➕ Chưa có nhắc nhở</li>';
+      dashboardRemindersList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/reminders.html\'">➕ Chưa có nhắc nhở</li>';
     }
   };
 
@@ -447,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (presets.length === 0) {
-      dashboardAutoList.innerHTML = '<li class="task-item" onclick="location.href=\'automation.html\'">➕ Tạo kịch bản mới</li>';
+      dashboardAutoList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/automation.html\'">➕ Tạo kịch bản mới</li>';
     }
   };
 
