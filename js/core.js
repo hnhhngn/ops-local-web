@@ -116,7 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cache widget elements and button text for frequent access
   let widgetElements = Array.from(document.querySelectorAll(".pixel-widget"));
-  const editBtnText = editBtn?.querySelector(".text");
+  let editBtnText = null;
+  if (editBtn) {
+    editBtnText = editBtn.querySelector(".text");
+  }
 
   /**
    * Toggle edit mode on/off
@@ -130,6 +133,21 @@ document.addEventListener("DOMContentLoaded", () => {
       widgetElements.forEach((w, i) => {
         w.setAttribute("draggable", isEditing);
         if (!w.id) w.id = `widget-auto-${i}`;
+
+        if (isEditing) {
+          // Inject handles
+          const directions = ["n", "e", "s", "w"];
+          directions.forEach((dir) => {
+            const h = document.createElement("div");
+            h.className = `resize-handle handle-${dir}`;
+            h.dataset.direction = dir;
+            w.appendChild(h);
+          });
+        } else {
+          // Remove handles
+          const handles = w.querySelectorAll(".resize-handle");
+          handles.forEach((h) => h.remove());
+        }
       });
 
       if (editBtnText) {
@@ -258,4 +276,124 @@ document.addEventListener("DOMContentLoaded", () => {
     widgetElements.forEach((w) => w.classList.remove("is-dragging"));
     hideGhost();
   });
+
+  /* ============================== RESIZE LOGIC ============================== */
+
+  let resizeConfig = null;
+
+  /**
+   * Handle mousedown on resize handles to initiate resizing
+   */
+  dashboard.addEventListener("mousedown", (e) => {
+    if (!isEditing) return;
+    const handle = e.target.closest(".resize-handle");
+    if (!handle) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const widget = handle.closest(".pixel-widget");
+    if (!widget) return;
+
+    const metrics = getWidgetMetrics(widget);
+    resizeConfig = {
+      widget,
+      direction: handle.dataset.direction,
+      startMetrics: metrics,
+      startMouse: { x: e.clientX, y: e.clientY },
+    };
+
+    widget.classList.add("is-resizing");
+    ghost.style.gridColumn = widget.style.gridColumn;
+    ghost.style.gridRow = widget.style.gridRow;
+    ghost.classList.add("is-visible", "valid");
+  });
+
+  /**
+   * Listen for mousemove on window to handle resize calculations globally
+   */
+  window.addEventListener("mousemove", (e) => {
+    if (!isEditing || !resizeConfig) return;
+
+    updateLayoutCache();
+    const { direction, startMetrics, startMouse } = resizeConfig;
+
+    const deltaX = e.clientX - startMouse.x;
+    const deltaY = e.clientY - startMouse.y;
+
+    const deltaCol = Math.round(deltaX / colSize);
+    const deltaRow = Math.round(deltaY / rowSize);
+
+    let props = {
+      x1: startMetrics.x1,
+      y1: startMetrics.y1,
+      w: startMetrics.w,
+      h: startMetrics.h,
+    };
+
+    if (direction === "e") {
+      props.w = Math.max(1, startMetrics.w + deltaCol);
+    } else if (direction === "s") {
+      props.h = Math.max(1, startMetrics.h + deltaRow);
+    } else if (direction === "w") {
+      const maxPossibleX1 = startMetrics.x2 - 1;
+      const newX1 = Math.max(1, Math.min(startMetrics.x1 + deltaCol, maxPossibleX1));
+      const actualDelta = startMetrics.x1 - newX1;
+      props.x1 = newX1;
+      props.w = startMetrics.w + actualDelta;
+    } else if (direction === "n") {
+      const maxPossibleY1 = startMetrics.y2 - 1;
+      const newY1 = Math.max(1, Math.min(startMetrics.y1 + deltaRow, maxPossibleY1));
+      const actualDelta = startMetrics.y1 - newY1;
+      props.y1 = newY1;
+      props.h = startMetrics.h + actualDelta;
+    }
+
+    props.x2 = props.x1 + props.w;
+    props.y2 = props.y1 + props.h;
+
+    // Bounds check
+    if (props.x2 > 25) props.w = 25 - props.x1;
+    if (props.y2 > 25) props.h = 25 - props.y1;
+
+    // Ghost preview
+    ghost.style.gridColumn = `${props.x1} / span ${props.w}`;
+    ghost.style.gridRow = `${props.y1} / span ${props.h}`;
+
+    const otherWidgets = widgetElements.filter(
+      (w) => w.id !== resizeConfig.widget.id
+    );
+    const isColliding = checkCollision(props, otherWidgets, resizeConfig.widget.id);
+
+    if (isColliding) {
+      ghost.classList.add("invalid");
+      ghost.classList.remove("valid");
+    } else {
+      ghost.classList.add("valid");
+      ghost.classList.remove("invalid");
+    }
+
+    resizeConfig.latestValid = isColliding ? null : props;
+  });
+
+  /**
+   * finalize resize on mouseup
+   */
+  window.addEventListener("mouseup", () => {
+    if (!resizeConfig) return;
+
+    if (resizeConfig.latestValid) {
+      const p = resizeConfig.latestValid;
+      const w = resizeConfig.widget;
+      w.style.gridColumn = `${p.x1} / span ${p.w}`;
+      w.style.gridRow = `${p.y1} / span ${p.h}`;
+      w.dataset.w = p.w;
+      w.dataset.h = p.h;
+    }
+
+    resizeConfig.widget.classList.remove("is-resizing");
+    resizeConfig = null;
+    hideGhost();
+  });
 });
+

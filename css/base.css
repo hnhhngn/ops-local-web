@@ -32,6 +32,12 @@
     --grid-cols: 24;
     --cell-size: calc(100% / var(--grid-cols));
     --color-grid-line: rgba(0, 0, 0, 0.1);
+
+    /* Semantic Tokens (Added) */
+    --radius-main: 10px;
+    --radius-small: 4px;
+    --spacing-base: 8px;
+    --color-muted: #666;
 }
 
 *,
