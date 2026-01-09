@@ -175,8 +175,61 @@ function Handle-ApiRequest($Request, $Response) {
     $Path = $Request.Url.AbsolutePath
     switch ("$Method $Path") {
         # -------------------------------------------------
-        # Example placeholder (REMOVE OR REPLACE)
+        # Generic Data CRUD
+        # Query: ?file=filename.json
         # -------------------------------------------------
+        "GET /api/data" {
+            $FileName = $Request.QueryString["file"]
+            if ([string]::IsNullOrWhiteSpace($FileName)) {
+                return Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "MISSING_FILE_PARAM"; message = "Query parameter 'file' is required" } }
+            }
+
+            $FilePath = Join-Path $DataDir $FileName
+            # Security: Prevent path traversal
+            if (-not ([System.IO.Path]::GetFullPath($FilePath)).StartsWith(([System.IO.Path]::GetFullPath($DataDir)))) {
+                return Write-JsonResponse $Response 403 @{ ok = $false; error = @{ code = "ACCESS_DENIED"; message = "Access to file outside data directory is prohibited" } }
+            }
+
+            if (-not (Test-Path $FilePath)) {
+                return Write-JsonResponse $Response 200 @() # Return empty array if file doesn't exist yet
+            }
+
+            try {
+                $content = Get-Content $FilePath -Raw -ErrorAction Stop
+                $data = $content | ConvertFrom-Json -ErrorAction Stop
+                Write-JsonResponse $Response 200 $data
+            }
+            catch {
+                Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "READ_ERROR"; message = "Failed to read or parse data file" } }
+            }
+        }
+
+        "POST /api/data" {
+            $FileName = $Request.QueryString["file"]
+            if ([string]::IsNullOrWhiteSpace($FileName)) {
+                return Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "MISSING_FILE_PARAM"; message = "Query parameter 'file' is required" } }
+            }
+
+            $FilePath = Join-Path $DataDir $FileName
+            if (-not ([System.IO.Path]::GetFullPath($FilePath)).StartsWith(([System.IO.Path]::GetFullPath($DataDir)))) {
+                return Write-JsonResponse $Response 403 @{ ok = $false; error = @{ code = "ACCESS_DENIED"; message = "Access to file outside data directory is prohibited" } }
+            }
+
+            $Payload = Read-JsonBody $Request
+            if ($null -eq $Payload) {
+                return Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "INVALID_JSON"; message = "Request body must be valid JSON" } }
+            }
+
+            try {
+                $json = $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
+                Set-Content -Path $FilePath -Value $json -Force -ErrorAction Stop
+                Write-JsonResponse $Response 200 @{ ok = $true }
+            }
+            catch {
+                Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "WRITE_ERROR"; message = "Failed to write data file" } }
+            }
+        }
+
         "GET /api/health" {
             Write-JsonResponse $Response 200 @{
                 ok   = $true

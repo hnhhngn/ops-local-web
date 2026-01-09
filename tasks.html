@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Tasks - IJS Ops</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <style>
+        .management-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .task-form {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1.5rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .task-list-container {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .task-table th,
+        .task-table td {
+            border: var(--border-width) solid var(--color-black);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .task-table th {
+            background: var(--color-gray);
+            text-transform: uppercase;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        select.pixel-input {
+            appearance: auto;
+            background: var(--color-white);
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="pixel-sidebar" id="sidebar">
+        <div class="sidebar-header" onclick="location.href='index.html'">
+            <span class="sidebar-brand">IJS</span>
+            <span class="sidebar-toggle-icon">◀</span>
+        </div>
+
+        <nav>
+            <div class="sidebar-link" onclick="location.href='index.html'">
+                <span class="icon">⚙️</span>
+                <span class="text">Dashboard</span>
+            </div>
+            <div class="sidebar-link is-active">
+                <span class="icon">📝</span>
+                <span class="text">Tasks</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="management-container">
+            <header>
+                <h1>QUẢN LÝ CÔNG VIỆC</h1>
+            </header>
+
+            <section class="task-form">
+                <h2>THÊM CÔNG VIỆC MỚI</h2>
+                <form id="task-form" class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="name">Tên công việc</label>
+                        <input type="text" id="name" class="pixel-input" placeholder="Nhập tên..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Loại</label>
+                        <select id="type" class="pixel-input">
+                            <option value="code">Code</option>
+                            <option value="test">Test</option>
+                            <option value="design">Design</option>
+                            <option value="confirm">Confirm</option>
+                            <option value="custom">Tùy chỉnh</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Độ ưu tiên</label>
+                        <select id="priority" class="pixel-input">
+                            <option value="low">Thấp</option>
+                            <option value="medium">Trung bình</option>
+                            <option value="high">Cao</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">Ngày bắt đầu</label>
+                        <input type="date" id="startDate" class="pixel-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">Ngày kết thúc</label>
+                        <input type="date" id="endDate" class="pixel-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="progress">Tiến độ (%)</label>
+                        <input type="number" id="progress" class="pixel-input" min="0" max="100" value="0">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="notes">Ghi chú</label>
+                        <textarea id="notes" class="pixel-input" rows="3" style="resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2; align-items: flex-end;">
+                        <button type="submit" class="pixel-button blue">LƯU CÔNG VIỆC</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="task-list-container">
+                <h2>DANH SÁCH CÔNG VIỆC</h2>
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Loại</th>
+                            <th>Ưu tiên</th>
+                            <th>Tiến độ</th>
+                            <th>Thời hạn</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="task-list-body">
+                        <!-- Content loaded by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/tasks.js" defer></script>
+</body>
+
+</html>
