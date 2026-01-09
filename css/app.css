@@ -840,6 +840,35 @@ textarea.pixel-input {
     transition: background 150ms;
 }
 
+.task-item.multi-line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.75rem;
+}
+
+.task-main-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.task-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-left: 2.25rem; /* Align with text after checkbox */
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.task-type-tag, .task-date-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
 .task-item:last-child {
     border-bottom: none;
 }

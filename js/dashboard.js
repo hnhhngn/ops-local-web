@@ -101,37 +101,78 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /**
-   * Render tasks to dashboard widget (Top 8)
-   */
-  /**
-   * Render tasks to dashboard widget (Top 8)
+   * Render tasks to dashboard widget (All incomplete)
    */
   const renderDashboardTasks = (tasks) => {
     if (!dashboardTaskList) return;
     dashboardTaskList.innerHTML = "";
 
-    // Sort by priority (High -> Medium -> Low)
-    const sortedTasks = [...tasks].sort((a, b) => {
+    // Filter: Only incomplete
+    const incompleteTasks = tasks.filter(task => (task.progress || 0) < 100);
+
+    // Sort: Priority (High->Low) -> Start Date (ASC) -> End Date (ASC)
+    const sortedTasks = [...incompleteTasks].sort((a, b) => {
+      // 1. Priority
       const p = { high: 3, medium: 2, low: 1 };
-      return (p[b.priority] || 0) - (p[a.priority] || 0);
-    }).slice(0, 8);
+      const priorityDiff = (p[b.priority] || 0) - (p[a.priority] || 0);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // 2. Start Date (Earliest first)
+      if (a.startDate && b.startDate) {
+        if (a.startDate !== b.startDate) return a.startDate.localeCompare(b.startDate);
+      } else if (a.startDate) {
+        return -1;
+      } else if (b.startDate) {
+        return 1;
+      }
+
+      // 3. End Date (Earliest first)
+      if (a.endDate && b.endDate) {
+        return a.endDate.localeCompare(b.endDate);
+      } else if (a.endDate) {
+        return -1;
+      } else if (b.endDate) {
+        return 1;
+      }
+
+      return 0;
+    });
 
     sortedTasks.forEach((task) => {
       const li = document.createElement("li");
-      li.className = "task-item";
+      li.className = "task-item multi-line";
 
       const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "gray");
       const priorityLabel = task.priority === "high" ? "High" : (task.priority === "medium" ? "Med" : "Low");
 
+      // Type icon/label
+      const typeIcons = {
+        code: "💻",
+        test: "🧪",
+        design: "🎨",
+        confirm: "✅",
+        custom: "⚙️"
+      };
+      const icon = typeIcons[task.type] || "📝";
+      const dateText = (task.startDate || task.endDate)
+        ? `${task.startDate || '...'} ➔ ${task.endDate || '...'}`
+        : "No date set";
+
       li.innerHTML = `
-        <label class="pixel-checkbox">
-            <input type="checkbox" ${task.progress === 100 ? "checked" : ""}>
-            <span class="checkmark"></span>
-        </label>
-        <div class="task-text" title="${task.name}">${task.name}</div>
-        <div class="task-meta">
-            <span class="badge ${priorityClass} mini">${priorityLabel}</span>
-            <button class="btn-edit-mini" title="Edit Task">✎</button>
+        <div class="task-main-row">
+            <label class="pixel-checkbox">
+                <input type="checkbox" ${task.progress === 100 ? "checked" : ""}>
+                <span class="checkmark"></span>
+            </label>
+            <div class="task-text" title="${task.name}">${task.name}</div>
+            <div class="task-meta">
+                <span class="badge ${priorityClass} mini">${priorityLabel}</span>
+                <button class="btn-edit-mini" title="Edit Task">✎</button>
+            </div>
+        </div>
+        <div class="task-sub-row">
+            <span class="task-type-tag">${icon} ${task.type || 'task'}</span>
+            <span class="task-date-tag">📅 ${dateText}</span>
         </div>
       `;
 
@@ -154,6 +195,13 @@ document.addEventListener("DOMContentLoaded", () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(all)
           });
+
+          // Re-render dashboard to respect filtering or updated status
+          if (newProgress === 100) {
+            li.style.opacity = "0.5";
+            li.style.textDecoration = "line-through";
+            setTimeout(() => loadDashboardTasks(), 500);
+          }
         } catch (err) { console.error(err); }
       });
 
@@ -214,8 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboardTaskList.appendChild(li);
     });
 
-    if (tasks.length === 0) {
-      dashboardTaskList.innerHTML = '<li class="task-item" style="justify-content:center; color:var(--color-muted);">No tasks found</li>';
+    if (incompleteTasks.length === 0) {
+      dashboardTaskList.innerHTML = '<li class="task-item" style="justify-content:center; color:var(--color-muted);">No incomplete tasks</li>';
     }
   };
 
@@ -339,20 +387,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }, (modalBody) => {
       // Re-init action builder logic (simplified)
       window.currentActions = [];
-      const addBtn = modalBody.querySelector("#add-action-btn");
+      const addBtn = modalBody.querySelector("#btnAddAction");
       if (addBtn) {
         addBtn.onclick = () => {
           const type = modalBody.querySelector("#actionType").value;
-          const val = modalBody.querySelector("#actionValue").value;
-          if (val) {
-            window.currentActions.push({ type, value: val });
-            // We would need a way to render this buffer in the modalBody
-            // For simplicity, let's just alert for now or implement minimally
-            const list = modalBody.querySelector(".action-list-mini");
+          const path = modalBody.querySelector("#actionPath").value;
+          const label = modalBody.querySelector("#actionLabel").value;
+
+          if (path && label) {
+            window.currentActions.push({ type, path, label });
+            const list = modalBody.querySelector("#new-action-list");
+            const emptyMsg = modalBody.querySelector("#empty-action-msg");
+            if (emptyMsg) emptyMsg.remove();
+
             if (list) {
               const li = document.createElement("li");
               li.className = "action-item";
-              li.innerHTML = `<span>${type}: ${val}</span>`;
+              li.style.padding = "0.25rem 0";
+              li.style.borderBottom = "1px solid #ccc";
+              li.innerHTML = `<span><strong>${label}</strong> (${type})</span>`;
               list.appendChild(li);
             }
           }
@@ -366,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (quickTaskInput) {
     quickTaskInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") handleQuickAdd();
+      if (e.key === "Enter") window.openTaskAddModal();
     });
   }
 
@@ -394,9 +447,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  /**
-   * Render Quick Access items
-   */
   /**
    * Render Quick Access items
    */
@@ -430,13 +480,6 @@ document.addEventListener("DOMContentLoaded", () => {
       item.onclick = function () {
         launchResource(this.getAttribute("data-path"));
       };
-
-      // Right click (context menu) to edit - simplified to shift+click for now or add edit button?
-      // For dashboard simplicity, let's keep it clean. 
-      // Maybe a small edit button on hover?
-      // Let's rely on Management Page for full editing of Links for now to avoid clutter, 
-      // OR implement a context menu later. 
-      // For now, let's just make them look good. 
 
       dashboardAccessGrid.appendChild(item);
     });
@@ -489,10 +532,8 @@ document.addEventListener("DOMContentLoaded", () => {
       opsGrid.setEditMode(true);
       dashboard.classList.add("is-editing");
       if (bar) bar.classList.remove("hidden");
-
-      // Update Palette command labels if needed, but we keep the same trigger
     } else {
-      // STOP EDITING (Manual stop via Palette? Usually we use the Bar now)
+      // STOP EDITING
       await stopEditing(true);
     }
   }
