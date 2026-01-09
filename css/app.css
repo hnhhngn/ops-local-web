@@ -70,33 +70,6 @@
     text-shadow: 2px 2px 0 var(--color-white);
 }
 
-/* ============================== SIDEBAR & NAVIGATION ============================== */
-.pixel-sidebar {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    bottom: 1rem;
-    width: var(--sidebar-width, 260px);
-    background-color: var(--color-white);
-    border: var(--border-width) solid var(--color-black);
-    border-radius: var(--radius-main);
-    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-    display: flex;
-    flex-direction: column;
-    padding: 0.8rem;
-    transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-    overflow: hidden;
-}
-
-.sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.8rem;
-    margin-bottom: 1rem;
-    border-radius: var(--radius-main);
-    cursor: pointer;
     background-color: var(--color-white);
     border: var(--border-width) solid var(--color-black);
     box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
@@ -223,14 +196,13 @@ main {
     top: 1rem;
     bottom: 1rem;
     right: 1rem;
-    left: calc(var(--sidebar-width, 260px) + 2rem);
+    left: 1rem; /* Full fixed width now */
     background-color: var(--color-white);
     border: var(--border-width) solid var(--color-black);
     border-radius: var(--radius-main);
     box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
     overflow: hidden; /* Fix: No scroll at main */
     padding: 1.5rem;
-    transition: left 200ms cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
 }
@@ -445,6 +417,56 @@ main h1 {
     transform: translateY(-2px);
     box-shadow: 0 4px 0 var(--color-black);
     transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+}
+
+/* ============================== CONTEXTUAL ACTION BAR ============================== */
+#edit-action-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    height: 50px;
+    width: auto;
+    min-width: 400px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(4px);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: var(--radius-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+    transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#edit-action-bar.hidden {
+    transform: translateX(-50%) translateY(150%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.bar-content {
+    width: 100%;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.bar-message {
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: var(--color-black);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.bar-actions {
+    display: flex;
+    gap: 0.75rem;
 }
 
 /* ============================== EDIT MODE ============================== */

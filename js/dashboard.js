@@ -1,35 +1,3 @@
-/* ============================== SIDEBAR NAVIGATION ============================== */
-
-/**
- * Toggle sidebar visibility state
- * @returns {void}
- */
-function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  sidebar.classList.toggle("is-hidden");
-}
-
-/**
- * Handle sidebar navigation and content section switching
- */
-document.addEventListener("DOMContentLoaded", () => {
-  const sidebarLinks = document.querySelectorAll(".sidebar-link");
-  const sections = document.querySelectorAll(".content-section");
-
-  sidebarLinks.forEach((link) => {
-    link.addEventListener("click", () => {
-      const targetPage = link.getAttribute("data-page");
-      if (!targetPage) return;
-      sidebarLinks.forEach((l) => l.classList.remove("is-active"));
-      link.classList.add("is-active");
-      sections.forEach((section) => {
-        section.classList.remove("is-active");
-        if (section.id === targetPage) section.classList.add("is-active");
-      });
-    });
-  });
-});
-
 /* ============================== DASHBOARD GRID (OpsGrid) ============================== */
 
 /**
@@ -37,9 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 document.addEventListener("DOMContentLoaded", () => {
   const dashboard = document.getElementById("dashboard");
-  const editBtn = document.getElementById("edit-mode-toggle");
-  const editBtnText = editBtn ? editBtn.querySelector(".text") : null;
   let isEditing = false;
+  let layoutSnapshot = null; // Store positions before editing
 
   // Visual preview ghost
   const ghost = document.createElement("div");
@@ -51,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     container: dashboard,
     ghost: ghost,
     onLayoutChange: () => {
-      console.log("Layout changed - ready for persistence logic (Phase 7 idea)");
+      console.log("Layout changed.");
     }
   });
 
@@ -106,44 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Failed to save layout:", err);
     }
   };
-
-  if (editBtn) {
-    editBtn.addEventListener("click", () => {
-      isEditing = !isEditing;
-      dashboard.classList.toggle("is-editing", isEditing);
-
-      opsGrid.setEditing(isEditing);
-      if (isEditing) {
-        opsGrid.updateCache();
-      } else {
-        saveLayout(); // Save when exiting edit mode
-      }
-
-      widgetElements.forEach((w, i) => {
-        w.setAttribute("draggable", isEditing);
-        if (!w.id) w.id = `widget-auto-${i}`;
-
-        if (isEditing) {
-          // Inject handles if not present
-          if (w.querySelectorAll(".resize-handle").length === 0) {
-            ["n", "e", "s", "w"].forEach((dir) => {
-              const h = document.createElement("div");
-              h.className = `resize-handle handle-${dir}`;
-              h.dataset.direction = dir;
-              w.appendChild(h);
-            });
-          }
-        } else {
-          // Remove handles
-          w.querySelectorAll(".resize-handle").forEach((h) => h.remove());
-        }
-      });
-
-      if (editBtnText) {
-        editBtnText.innerText = isEditing ? "Save Layout" : "Edit Layout";
-      }
-    });
-  }
 
   // Initial load
   loadLayout();
@@ -322,6 +251,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial load
   loadDashboardAccess();
+
+  /* ============================== EDIT MODE & PERSISTENCE ============================== */
+
+  /**
+   * Toggle layout editing mode
+   */
+  async function toggleEditMode() {
+    const bar = document.getElementById("edit-action-bar");
+
+    if (!isEditing) {
+      // START EDITING
+      isEditing = true;
+      layoutSnapshot = opsGrid.getLayout(); // Take snapshot
+      opsGrid.setEditMode(true);
+      dashboard.classList.add("is-editing");
+      if (bar) bar.classList.remove("hidden");
+
+      // Update Palette command labels if needed, but we keep the same trigger
+    } else {
+      // STOP EDITING (Manual stop via Palette? Usually we use the Bar now)
+      await stopEditing(true);
+    }
+  }
+
+  /**
+   * Finalize editing
+   * @param {boolean} shouldSave - Whether to save to server or discard
+   */
+  async function stopEditing(shouldSave) {
+    const bar = document.getElementById("edit-action-bar");
+    isEditing = false;
+    opsGrid.setEditMode(false);
+    dashboard.classList.remove("is-editing");
+    if (bar) bar.classList.add("hidden");
+
+    if (shouldSave) {
+      await saveLayout();
+      layoutSnapshot = null;
+    } else {
+      // CANCEL: Restore from snapshot
+      if (layoutSnapshot) {
+        opsGrid.setLayout(layoutSnapshot);
+        layoutSnapshot = null;
+      }
+    }
+  }
+
+  // Expose for Command Palette access
+  window.toggleEditMode = toggleEditMode;
+  window.stopEditing = stopEditing;
+
+  // Bind Bar Buttons
+  const saveBtn = document.getElementById('edit-save-btn');
+  const cancelBtn = document.getElementById('edit-cancel-btn');
+  const legacyToggle = document.getElementById('edit-mode-toggle');
+
+  if (saveBtn) saveBtn.onclick = () => stopEditing(true);
+  if (cancelBtn) cancelBtn.onclick = () => stopEditing(false);
+  if (legacyToggle) legacyToggle.onclick = toggleEditMode;
+
+  // Handle Esc Key for Cancel
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isEditing) {
+      stopEditing(false);
+    }
+  });
 
   /* ============================== DASHBOARD REMINDERS ============================== */
 

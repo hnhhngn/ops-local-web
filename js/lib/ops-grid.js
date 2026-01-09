@@ -14,33 +14,36 @@ window.OpsGrid = class OpsGrid {
     constructor(config) {
         this.container = config.container;
         this.ghost = config.ghost;
-        this.onLayoutChange = config.onLayoutChange || (() => {});
-        
+        this.onLayoutChange = config.onLayoutChange || (() => { });
+
         this.isEditing = false;
         this.colSize = 0;
         this.rowSize = 0;
         this.containerRect = null;
-        
+
+        // Cache widget elements
+        this.widgets = Array.from(this.container.querySelectorAll(".pixel-widget"));
+
         // Internal state
         this.resizeConfig = null;
-        
+
         this.init();
     }
 
     init() {
         if (!this.container) return;
-        
+
         // Bind Drag Events
         this.container.addEventListener("dragstart", this.handleDragStart.bind(this));
         this.container.addEventListener("dragover", this.handleDragOver.bind(this));
         this.container.addEventListener("drop", this.handleDrop.bind(this));
         this.container.addEventListener("dragend", this.handleDragEnd.bind(this));
-        
+
         // Bind Resize Events
         this.container.addEventListener("mousedown", this.handleMouseDown.bind(this));
         window.addEventListener("mousemove", this.handleMouseMove.bind(this));
         window.addEventListener("mouseup", this.handleMouseUp.bind(this));
-        
+
         console.log("OpsGrid Library initialized with Drag & Resize support.");
     }
 
@@ -226,7 +229,7 @@ window.OpsGrid = class OpsGrid {
         const otherWidgets = Array.from(this.container.querySelectorAll(".pixel-widget")).filter(
             (w) => w.id !== this.resizeConfig.widget.id
         );
-        
+
         const isColliding = this.checkCollision(props, otherWidgets, this.resizeConfig.widget.id);
 
         if (isColliding) {
@@ -250,7 +253,7 @@ window.OpsGrid = class OpsGrid {
             w.style.gridRow = `${p.y1} / span ${p.h}`;
             w.dataset.w = p.w;
             w.dataset.h = p.h;
-            
+
             this.onLayoutChange(); // Trigger save callback
         }
 
@@ -259,8 +262,40 @@ window.OpsGrid = class OpsGrid {
         this.hideGhost();
     }
 
-    setEditing(val) {
-        this.isEditing = val;
+    /**
+     * Set edit mode state
+     * @param {boolean} value 
+     */
+    setEditMode(value) {
+        this.isEditing = value;
+        this.container.classList.toggle('is-editing', value);
+
+        if (value) {
+            this.updateCache(); // Refresh grid measurements
+        }
+
+        // Update widgets list just in case some were added/removed
+        this.widgets = Array.from(this.container.querySelectorAll(".pixel-widget"));
+
+        this.widgets.forEach((w, i) => {
+            w.setAttribute("draggable", value);
+            if (!w.id) w.id = `widget-auto-${i}`;
+
+            if (value) {
+                // Inject handles if not present
+                if (w.querySelectorAll(".resize-handle").length === 0) {
+                    ["n", "e", "s", "w"].forEach((dir) => {
+                        const h = document.createElement("div");
+                        h.className = `resize-handle handle-${dir}`;
+                        h.dataset.direction = dir;
+                        w.appendChild(h);
+                    });
+                }
+            } else {
+                // Remove handles
+                w.querySelectorAll(".resize-handle").forEach((h) => h.remove());
+            }
+        });
     }
 
     /**
@@ -272,6 +307,7 @@ window.OpsGrid = class OpsGrid {
         this.colSize = this.containerRect.width / 24;
         this.rowSize = this.containerRect.height / 24;
     }
+
     /**
      * Extract widget position and size from DOM and styles
      * @param {HTMLElement} widget 
@@ -303,6 +339,38 @@ window.OpsGrid = class OpsGrid {
                 proposed.y1 < m.y2 &&
                 proposed.y2 > m.y1
             );
+        });
+    }
+
+    /**
+     * Get current layout snapshot
+     */
+    getLayout() {
+        const layout = {};
+        this.widgets.forEach(w => {
+            const rect = w.getBoundingClientRect();
+            layout[w.id] = {
+                w: parseInt(w.dataset.w),
+                h: parseInt(w.dataset.h),
+                col: parseInt(w.style.gridColumnStart),
+                row: parseInt(w.style.gridRowStart)
+            };
+        });
+        return layout;
+    }
+
+    /**
+     * Restore layout from snapshot
+     */
+    setLayout(layout) {
+        this.widgets.forEach(w => {
+            const config = layout[w.id];
+            if (config) {
+                w.dataset.w = config.w;
+                w.dataset.h = config.h;
+                w.style.gridColumn = `${config.col} / span ${config.w}`;
+                w.style.gridRow = `${config.row} / span ${config.h}`;
+            }
         });
     }
 

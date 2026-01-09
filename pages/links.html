@@ -7,6 +7,7 @@
     <title>Quản lý Quick Access - IJS Ops</title>
     <link rel="stylesheet" href="../css/base.css" />
     <link rel="stylesheet" href="../css/app.css" />
+    <link rel="stylesheet" href="../css/command-palette.css" />
     <style>
         .management-container {
             display: flex;
@@ -93,35 +94,7 @@
 </head>
 
 <body>
-    <aside class="pixel-sidebar" id="sidebar">
-        <div class="sidebar-header" onclick="location.href='../index.html'">
-            <span class="sidebar-brand">IJS</span>
-            <span class="sidebar-toggle-icon">◀</span>
-        </div>
-
-        <nav>
-            <div class="sidebar-link" onclick="location.href='../index.html'">
-                <span class="icon">⚙️</span>
-                <span class="text">Dashboard</span>
-            </div>
-            <div class="sidebar-link" onclick="location.href='tasks.html'">
-                <span class="icon">📝</span>
-                <span class="text">Tasks</span>
-            </div>
-            <div class="sidebar-link is-active" onclick="location.href='links.html'">
-                <span class="icon">🚀</span>
-                <span class="text">Quick Access</span>
-            </div>
-            <div class="sidebar-link" onclick="location.href='reminders.html'">
-                <span class="icon">🔔</span>
-                <span class="text">Reminders</span>
-            </div>
-            <div class="sidebar-link" onclick="location.href='automation.html'">
-                <span class="icon">🤖</span>
-                <span class="text">Automation</span>
-            </div>
-        </nav>
-    </aside>
+    <!-- Sidebar Removed -->
 
     <main>
         <div class="management-container">
@@ -180,6 +153,7 @@
         </div>
     </main>
 
+    <script src="../js/lib/command-palette.js"></script>
     <script src="../js/links.js" defer></script>
 </body>
 
