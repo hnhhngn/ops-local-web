@@ -17,7 +17,7 @@
         </div>
 
         <nav>
-            <div class="sidebar-link is-active">
+            <div class="sidebar-link is-active" onclick="location.href='index.html'">
                 <span class="icon">⚙️</span>
                 <span class="text">Dashboard</span>
             </div>
@@ -28,6 +28,14 @@
             <div class="sidebar-link" onclick="location.href='links.html'">
                 <span class="icon">🚀</span>
                 <span class="text">Quick Access</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='reminders.html'">
+                <span class="icon">🔔</span>
+                <span class="text">Reminders</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='automation.html'">
+                <span class="icon">🤖</span>
+                <span class="text">Automation</span>
             </div>
         </nav>
     </aside>
@@ -61,9 +69,9 @@
                     <span class="widget-title">Quick Access (Workplace)</span>
                 </div>
                 <div class="widget-body">
-                    <div class="access-grid" id="dashboard-access-grid">
+                    <ul class="task-list" id="dashboard-automation-list">
                         <!-- Dynamic content -->
-                    </div>
+                    </ul>
                 </div>
             </div>
 

@@ -100,6 +100,56 @@ function Read-JsonBody($Request) {
 }
 
 # -----------------------------
+# Helper: Launch Resource
+# -----------------------------
+function Launch-Resource($Path) {
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return @{ ok = $false; error = "Path is required" }
+    }
+
+    $Path = $Path.Trim()
+    $alreadyOpen = $false
+
+    # Smart Focus Logic for Folders/Files (Local Paths)
+    # Check if window is already open using Shell.Application
+    if (Test-Path $Path) {
+        try {
+            $shell = New-Object -ComObject Shell.Application
+            $windows = $shell.Windows()
+            
+            # Normalize path for comparison
+            $targetPath = (Get-Item $Path).FullName
+            
+            foreach ($win in $windows) {
+                try {
+                    # Check if window has a path
+                    if ($win.Document -and $win.Document.Folder) {
+                        $winPath = $win.Document.Folder.Self.Path
+                        if ($winPath -eq $targetPath) {
+                            $alreadyOpen = $true
+                            # Optional: Try to bring to front (not guaranteed stable in pure PS without C# P/Invoke)
+                            break
+                        }
+                    }
+                }
+                catch {}
+            }
+        }
+        catch {
+            # Ignore COM errors
+        }
+    }
+
+    try {
+        Start-Process -FilePath $Path -ErrorAction Stop
+        return @{ ok = $true; alreadyOpen = $alreadyOpen }
+    }
+    catch {
+        return @{ ok = $false; error = $_.Exception.Message }
+    }
+}
+
+# -----------------------------
 # Normalize JSON array
 # -----------------------------
 function Normalize-Array($Data) {
@@ -243,35 +293,42 @@ function Handle-ApiRequest($Request, $Response) {
             $Payload = Read-JsonBody $Request
             $Path = $Payload.path
             
-            if ([string]::IsNullOrWhiteSpace($Path)) {
-                return Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "MISSING_PATH"; message = "Path is required" } }
+            $result = Launch-Resource $Path
+            
+            if ($result.ok) {
+                Write-JsonResponse $Response 200 $result
             }
-
-            try {
-                $alreadyOpen = $false
-                if ($Path -notlike "http*") {
-                    # Check if already open (only for local paths)
-                    try {
-                        $NormalizedPath = ($Path.TrimEnd('\')).ToLower()
-                        $shell = New-Object -ComObject Shell.Application
-                        $existing = $shell.Windows() | Where-Object {
-                            try { return ($_.Document.Folder.Self.Path.TrimEnd('\')).ToLower() -eq $NormalizedPath } catch { return $false }
-                        }
-                        if ($existing) { $alreadyOpen = $true }
-                    }
-                    catch { }
+            else {
+                if ($result.error -eq "Path is required") {
+                    Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "MISSING_PATH"; message = $result.error } }
                 }
+                else {
+                    Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "LAUNCH_FAILED"; message = $result.error } }
+                }
+            }
+            break
+        }
 
-                # Use Start-Process as requested
-                Start-Process $Path -ErrorAction Stop
-                Write-JsonResponse $Response 200 @{ ok = $true; alreadyOpen = $alreadyOpen }
+        "POST /api/automation/run" {
+            $Payload = Read-JsonBody $Request
+            $Actions = $Payload.actions
+
+            if (-not $Actions -or $Actions.Count -eq 0) {
+                Write-JsonResponse $Response 400 @{ ok = $false; error = @{ code = "NO_ACTIONS"; message = "No actions provided" } }
                 break
             }
-            catch {
-                Write-Host "[ERROR] Failed to launch: $Path - " $_.Exception.Message
-                Write-JsonResponse $Response 500 @{ ok = $false; error = @{ code = "LAUNCH_ERROR"; message = $_.Exception.Message } }
-                break
+
+            $results = @()
+            foreach ($action in $Actions) {
+                if ($action.type -eq "open") {
+                    $res = Launch-Resource $action.path
+                    $results += @{ action = $action; result = $res }
+                    Start-Sleep -Milliseconds 500 # Small delay between actions
+                }
             }
+            
+            Write-JsonResponse $Response 200 @{ ok = $true; results = $results }
+            break
         }
 
         "GET /api/health" {

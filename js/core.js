@@ -637,5 +637,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial load
   loadDashboardReminders();
+
+  /* ============================== DASHBOARD AUTOMATION ============================== */
+
+  const dashboardAutoList = document.getElementById("dashboard-automation-list");
+
+  /**
+   * Load Presets from server
+   */
+  const loadDashboardAutomation = async () => {
+    if (!dashboardAutoList) return;
+
+    try {
+      const response = await fetch("/api/data?file=automation.json");
+      if (!response.ok) return;
+      const data = await response.json();
+      const presets = Array.isArray(data) ? data : (data ? [data] : []);
+      renderDashboardAutomation(presets);
+    } catch (err) {
+      console.error("Dashboard automation load error:", err);
+    }
+  };
+
+  /**
+   * Render Automation Buttons
+   */
+  const renderDashboardAutomation = (presets) => {
+    if (!dashboardAutoList) return;
+    dashboardAutoList.innerHTML = "";
+
+    presets.forEach((pset) => {
+      const li = document.createElement("li");
+      li.className = "task-item";
+      li.style.justifyContent = "center";
+      li.style.background = "var(--color-green)";
+      li.style.color = "var(--color-white)";
+      li.style.cursor = "pointer";
+      li.style.fontWeight = "bold";
+      
+      li.innerHTML = `🚀 ${pset.name}`;
+      
+      li.onclick = async () => {
+         if(!confirm(`Chạy kịch bản: ${pset.name}?`)) return;
+         
+         try {
+            const response = await fetch("/api/automation/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ actions: pset.actions })
+            });
+            const res = await response.json();
+            if(res.ok) alert("Kịch bản đã chạy xong!");
+            else alert("Lỗi: " + JSON.stringify(res.error));
+         } catch(e) {
+             alert("Lỗi kết nối: " + e.message);
+         }
+      };
+      
+      dashboardAutoList.appendChild(li);
+    });
+
+    if (presets.length === 0) {
+      dashboardAutoList.innerHTML = '<li class="task-item" onclick="location.href=\'automation.html\'">➕ Tạo kịch bản mới</li>';
+    }
+  };
+
+  // Initial load
+  loadDashboardAutomation();
 });
 

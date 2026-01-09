@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Tự động hóa - IJS Ops</title>
+    <!-- Fonts -->
+    <!-- Google Fonts removed to comply with Local Only rule. Using local VT323 via base.css -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <style>
+        .management-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .auto-form {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1.5rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Action Builder Section */
+        .action-builder {
+            grid-column: 1 / -1;
+            border-top: 2px dashed var(--color-gray);
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .action-input-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+            background: var(--color-gray);
+            padding: 1rem;
+            border-radius: var(--radius-small);
+        }
+
+        .action-list-mini {
+            list-style: none;
+            border: var(--border-width) solid var(--color-black);
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f9fafb;
+        }
+
+        .action-item-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .action-item-mini:last-child {
+            border-bottom: none;
+        }
+
+        /* Presets List */
+        .auto-list-container {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .auto-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .auto-table th,
+        .auto-table td {
+            border: var(--border-width) solid var(--color-black);
+            padding: 0.75rem;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .auto-table th {
+            background: var(--color-gray);
+            text-transform: uppercase;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="pixel-sidebar" id="sidebar">
+        <div class="sidebar-header" onclick="location.href='index.html'">
+            <span class="sidebar-brand">IJS</span>
+            <span class="sidebar-toggle-icon">◀</span>
+        </div>
+
+        <nav>
+            <div class="sidebar-link" onclick="location.href='index.html'">
+                <span class="icon">⚙️</span>
+                <span class="text">Dashboard</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='tasks.html'">
+                <span class="icon">📝</span>
+                <span class="text">Tasks</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='links.html'">
+                <span class="icon">🚀</span>
+                <span class="text">Quick Access</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='reminders.html'">
+                <span class="icon">🔔</span>
+                <span class="text">Reminders</span>
+            </div>
+            <div class="sidebar-link is-active">
+                <span class="icon">🤖</span>
+                <span class="text">Automation</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="management-container">
+            <header>
+                <h1>QUẢN LÝ TỰ ĐỘNG HÓA (PRESETS)</h1>
+            </header>
+
+            <section class="auto-form">
+                <h2>THIẾT LẬP KỊCH BẢN (PRESET)</h2>
+                <form id="auto-form" class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="presetName">Tên kịch bản</label>
+                        <input type="text" id="presetName" class="pixel-input" placeholder="Ví dụ: Start Work Morning"
+                            required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="presetDesc">Mô tả</label>
+                        <textarea id="presetDesc" class="pixel-input" rows="2"
+                            placeholder="Mô tả ngắn gọn..."></textarea>
+                    </div>
+
+                    <!-- ACTION BUILDER -->
+                    <div class="action-builder">
+                        <label>Danh sách hành động (Steps)</label>
+
+                        <div class="action-input-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-size: 0.8rem;">Loại</label>
+                                <select id="actionType" class="pixel-input">
+                                    <option value="open">Mở Ứng dụng/Folder</option>
+                                    <!-- Future: <option value="command">Chạy lệnh Visual</option> -->
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 3;">
+                                <label style="font-size: 0.8rem;">Đường dẫn (Path)</label>
+                                <input type="text" id="actionPath" class="pixel-input"
+                                    placeholder="C:\App.exe hoặc Folder...">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-size: 0.8rem;">Nhãn (Label)</label>
+                                <input type="text" id="actionLabel" class="pixel-input" placeholder="Tên app...">
+                            </div>
+                            <button type="button" class="pixel-button green mini" id="btnAddAction">THÊM</button>
+                        </div>
+
+                        <ul id="new-action-list" class="action-list-mini">
+                            <!-- Items added via JS -->
+                            <li style="padding:1rem; color:#666; text-align:center;">Chưa có hành động nào</li>
+                        </ul>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
+                        <button type="submit" class="pixel-button blue">LƯU KỊCH BẢN</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="auto-list-container">
+                <h2>DANH SÁCH KỊCH BẢN CÓ SẴN</h2>
+                <table class="auto-table">
+                    <thead>
+                        <tr>
+                            <th>Tên kịch bản</th>
+                            <th>Mô tả</th>
+                            <th>Số bước</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auto-list-body">
+                        <!-- Content loaded by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/automation.js" defer></script>
+</body>
+
+</html>
