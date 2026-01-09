@@ -26,7 +26,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Modal Event Listeners
+  const openModalBtn = document.getElementById("btn-open-modal");
+  const closeModalBtn = document.getElementById("btn-close-modal");
+
+  if (openModalBtn) {
+    openModalBtn.addEventListener("click", () => {
+      openForAdd();
+    });
+  }
+
+  // Close logic handled by Manager
 });
+
+// Modal Logic Replaced by Manager
+function openForAdd() {
+  editingLinkId = null;
+  window.modalManager.open('link', 'THÊM ĐƯỜNG DẪN MỚI', handleFormSubmit);
+}
+
+function closeModal() {
+  const modalOverlay = document.getElementById("modal-overlay");
+  modalOverlay.classList.add("hidden");
+  editingLinkId = null;
+}
 
 /**
  * Fetch links from the server
@@ -102,6 +126,7 @@ async function handleFormSubmit(e) {
     const btn = document.querySelector("#link-form button[type='submit']");
     if (btn) btn.innerText = "LƯU ĐƯỜNG DẪN";
     renderLinks();
+    closeModal();
   }
 }
 
@@ -154,14 +179,20 @@ function editLink(id) {
   if (!link) return;
 
   editingLinkId = id;
-  document.getElementById("label").value = link.label;
-  document.getElementById("path").value = link.path;
-  document.getElementById("type").value = link.type;
-  document.getElementById("group").value = link.group;
 
-  const btn = document.querySelector("#link-form button[type='submit']");
-  if (btn) btn.innerText = "CẬP NHẬT ĐƯỜNG DẪN";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.modalManager.open('link', 'CẬP NHẬT ĐƯỜNG DẪN', handleFormSubmit, () => {
+    // Post render: fill data
+    const labelEl = document.getElementById("label");
+    if (labelEl) {
+      labelEl.value = link.label;
+      document.getElementById("path").value = link.path;
+      document.getElementById("type").value = link.type;
+      document.getElementById("group").value = link.group;
+
+      const btn = document.querySelector("#link-form button[type='submit']");
+      if (btn) btn.innerText = "CẬP NHẬT ĐƯỜNG DẪN";
+    }
+  });
 }
 
 /**
@@ -173,7 +204,9 @@ async function deleteLink(id) {
   const updatedList = allLinks.filter((l) => l.id !== id);
   const success = await saveLinksToServer(updatedList);
   if (success) {
-    allLinks = updatedList;
+    // Close via manager
+    window.modalManager.close();
+    editingLinkId = null;
     renderLinks();
   }
 }

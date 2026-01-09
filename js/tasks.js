@@ -10,11 +10,33 @@ let editingTaskId = null;
 document.addEventListener("DOMContentLoaded", () => {
   loadTasks();
 
+  loadTasks();
+
   const form = document.getElementById("task-form");
   if (form) {
     form.addEventListener("submit", handleFormSubmit);
   }
+
+  // Modal Event Listeners
+  const openModalBtn = document.getElementById("btn-open-modal");
+  const closeModalBtn = document.getElementById("btn-close-modal");
+  const modalOverlay = document.getElementById("modal-overlay");
+
+  if (openModalBtn) {
+    openModalBtn.addEventListener("click", () => {
+      openForAdd();
+    });
+  }
+
+  // Remove local close listener as Manager handles it
 });
+
+// Modal Logic replaced by Shared Manager
+function openForAdd() {
+  editingTaskId = null;
+  window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', handleFormSubmit);
+}
+
 
 /**
  * Fetch tasks from the server
@@ -103,6 +125,12 @@ async function handleFormSubmit(e) {
       const submitBtn = document.querySelector("#task-form button[type='submit']");
       if (submitBtn) submitBtn.innerText = "LƯU CÔNG VIỆC";
       renderTasks();
+      // Close modal via manager
+      window.modalManager.close();
+
+      // Reset editing state after success
+      editingTaskId = null;
+      // Close modal on success
     }
   } catch (error) {
     console.error("Error saving task:", error);
@@ -138,18 +166,24 @@ function editTask(id) {
   if (!task) return;
 
   editingTaskId = id;
-  document.getElementById("name").value = task.name;
-  document.getElementById("type").value = task.type;
-  document.getElementById("priority").value = task.priority;
-  document.getElementById("startDate").value = task.startDate || "";
-  document.getElementById("endDate").value = task.endDate || "";
-  document.getElementById("progress").value = task.progress;
-  document.getElementById("notes").value = task.notes || "";
 
-  const submitBtn = document.querySelector("#task-form button[type='submit']");
-  if (submitBtn) submitBtn.innerText = "CẬP NHẬT CÔNG VIỆC";
+  // Open modal first via Manager
+  window.modalManager.open('task', 'CẬP NHẬT CÔNG VIỆC', handleFormSubmit, () => {
+    // Post-render: Fill data
+    const nameEl = document.getElementById("name");
+    if (nameEl) {
+      nameEl.value = task.name;
+      document.getElementById("type").value = task.type;
+      document.getElementById("priority").value = task.priority;
+      document.getElementById("startDate").value = task.startDate || "";
+      document.getElementById("endDate").value = task.endDate || "";
+      document.getElementById("progress").value = task.progress;
+      document.getElementById("notes").value = task.notes || "";
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+      const submitBtn = document.querySelector("#task-form button[type='submit']");
+      if (submitBtn) submitBtn.innerText = "CẬP NHẬT CÔNG VIỆC";
+    }
+  });
 }
 
 /**

@@ -69,10 +69,28 @@
     color: var(--color-black);
     text-shadow: 2px 2px 0 var(--color-white);
 }
-
+.pixel-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
     background-color: var(--color-white);
-    border: var(--border-width) solid var(--color-black);
-    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+    border-right: var(--border-width) solid var(--color-black);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: width 200ms;
+}
+
+.sidebar-header {
+    padding: 1.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--border-width) solid var(--color-black);
+    background-color: var(--color-white);
+}
     transition: all 120ms ease-out;
     user-select: none;
 }
@@ -196,7 +214,7 @@ main {
     top: 1rem;
     bottom: 1rem;
     right: 1rem;
-    left: 1rem; /* Full fixed width now */
+    left: 5rem; /* Space for sidebar icons */
     background-color: var(--color-white);
     border: var(--border-width) solid var(--color-black);
     border-radius: var(--radius-main);
@@ -207,8 +225,17 @@ main {
     flex-direction: column;
 }
 
+.pixel-sidebar:not(.is-hidden) ~ main {
+    left: calc(var(--sidebar-width) + 1rem);
+}
+
 .pixel-sidebar.is-hidden ~ main {
-    left: calc(80px + 2rem); /* Match when sidebar is hidden */
+    left: calc(80px + 1rem); 
+}
+
+/* If sidebar is fully removed/not present */
+body:not(:has(.pixel-sidebar)) main {
+    left: 1rem;
 }
 
 main::-webkit-scrollbar {
@@ -599,4 +626,204 @@ main h1 {
 
 .handle-w {
     left: -4px;
+}
+
+/* ============================== HELPER CLASSES ============================== */
+.hidden {
+    display: none !important;
+}
+
+/* ============================== MODAL COMPONENT (Phase 12) ============================== */
+
+.pixel-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    /* backdrop-filter removed for performance */
+    z-index: 9000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease-out;
+}
+
+.pixel-modal-overlay:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pixel-modal {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: var(--radius-main);
+    box-shadow: 0 8px 0 var(--color-black);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pixel-modal-overlay:not(.hidden) .pixel-modal {
+    transform: translateY(0);
+}
+
+.pixel-modal-header {
+    padding: 1rem;
+    border-bottom: var(--border-width) solid var(--color-black);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-gray);
+    border-radius: calc(var(--radius-main) - 2px) calc(var(--radius-main) - 2px) 0 0;
+}
+
+.pixel-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+
+.pixel-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Helper for scrollable lists in main view */
+.scrollable-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; 
+    padding-right: 4px; 
+}
+
+/* Custom Scrollbar for containers */
+.pixel-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.pixel-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-gray);
+    border-left: 1px solid var(--color-black);
+}
+
+.pixel-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-black);
+    border: 1px solid var(--color-white);
+}
+
+/* ============================== MANAGEMENT PAGES (Phase 13) ============================== */
+
+.management-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* Generic List Container (replaces .task-list-container, etc.) */
+.management-list-container {
+    background: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    padding: 1rem;
+    border-radius: var(--radius-main);
+    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+    flex: 1; /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Scroll handled by inner scrollable-container */
+}
+
+/* Scrollable area inside list container */
+.scrollable-container {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+/* Action Builder (from Automation) */
+.action-builder {
+    grid-column: 1 / -1;
+    border-top: 2px dashed var(--color-black);
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.action-list-mini {
+    margin-top: 1rem;
+    padding: 0;
+    list-style: none;
+    border: var(--border-width) solid var(--color-black);
+    background: #f9f9f9;
+}
+
+.action-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.action-item:last-child {
+    border-bottom: none;
+}
+
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.management-table th,
+.management-table td {
+    border: var(--border-width) solid var(--color-black);
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.management-table th {
+    background: var(--color-gray);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.action-btns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+textarea.pixel-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.event-time {
+    font-weight: bold;
+    color: var(--color-blue);
 }

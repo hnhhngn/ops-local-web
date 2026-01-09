@@ -133,45 +133,55 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Handle Quick Add task from dashboard
    */
-  const handleQuickAdd = async () => {
-    if (!quickTaskInput || !quickTaskInput.value.trim()) return;
-
-    const newTask = {
-      id: "task-" + Date.now(),
-      name: quickTaskInput.value.trim(),
-      type: "custom",
-      priority: "low",
-      startDate: new Date().toISOString().split("T")[0],
-      progress: 0,
-      notes: ""
-    };
-
-    try {
-      const response = await fetch("/api/data?file=tasks.json");
-      let tasks = [];
-      if (response.ok) {
-        const data = await response.json();
-        tasks = Array.isArray(data) ? data : (data ? [data] : []);
-      }
-      tasks.push(newTask);
-
-      const saveRes = await fetch("/api/data?file=tasks.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tasks)
-      });
-
-      if (saveRes.ok) {
-        quickTaskInput.value = "";
-        loadDashboardTasks();
-      }
-    } catch (err) {
-      console.error("Quick add error:", err);
-    }
-  };
-
   if (quickTaskBtn) {
-    quickTaskBtn.addEventListener("click", handleQuickAdd);
+    quickTaskBtn.addEventListener("click", () => {
+      // Open Modal with pre-filled name if typed
+      const initialName = quickTaskInput.value.trim();
+
+      window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', async (e) => {
+        // Handle Submit Logic (Duplicated from tasks.js effectively, or better, extracted to service)
+        // For Phase 13, we'll implement a simple fetch here.
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const task = {
+          id: Date.now().toString(),
+          name: formData.get("name"), // Use full form data
+          type: document.getElementById("type").value,
+          priority: document.getElementById("priority").value,
+          startDate: document.getElementById("startDate").value,
+          endDate: document.getElementById("endDate").value,
+          progress: parseInt(document.getElementById("progress").value) || 0,
+          notes: document.getElementById("notes").value
+        };
+
+        try {
+          const allTasksResponse = await fetch("/api/data?file=tasks.json");
+          const allTasks = await allTasksResponse.json();
+          allTasks.push(task);
+
+          await fetch("/api/data?file=tasks.json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(allTasks)
+          });
+
+          window.modalManager.close();
+          loadDashboardTasks(); // Refresh widget
+          quickTaskInput.value = "";
+        } catch (err) {
+          console.error(err);
+          alert("Lỗi khi lưu task từ dashboard.");
+        }
+      }, (modalBody) => {
+        // Pre-fill name from quick input
+        if (initialName) {
+          setTimeout(() => {
+            const nameInput = modalBody.querySelector("#name");
+            if (nameInput) nameInput.value = initialName;
+          }, 50);
+        }
+      });
+    });
   }
   if (quickTaskInput) {
     quickTaskInput.addEventListener("keypress", (e) => {

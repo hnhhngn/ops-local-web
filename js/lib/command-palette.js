@@ -28,25 +28,25 @@ class CommandPalette {
                 { label: "Automation", path: this.prefix + "automation.html" }
             ],
             commands: [
-                { label: "Go to Dashboard", href: this.rootPath },
-                { label: "Go to Tasks", href: this.prefix + "tasks.html" },
+                { label: "Go: Dashboard", href: this.rootPath },
+                { label: "Go: Tasks", href: this.prefix + "tasks.html" },
                 {
-                    label: "Toggle Edit Layout", action: () => {
+                    label: "Layout: Toggle Edit Mode", action: () => {
                         if (typeof window.toggleEditMode === 'function') window.toggleEditMode();
                     }
                 },
                 {
-                    label: "Start Editing Layout", action: () => {
+                    label: "Layout: Start Editing", action: () => {
                         if (typeof window.toggleEditMode === 'function') window.toggleEditMode();
                     }
                 },
                 {
-                    label: "Save Layout Edits", action: () => {
+                    label: "Layout: Save Changes", action: () => {
                         if (typeof window.stopEditing === 'function') window.stopEditing(true);
                     }
                 },
                 {
-                    label: "Cancel Layout Edits", action: () => {
+                    label: "Layout: Discard Changes", action: () => {
                         if (typeof window.stopEditing === 'function') window.stopEditing(false);
                     }
                 }

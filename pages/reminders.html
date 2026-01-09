@@ -8,124 +8,22 @@
     <link rel="stylesheet" href="../css/base.css" />
     <link rel="stylesheet" href="../css/app.css" />
     <link rel="stylesheet" href="../css/command-palette.css" />
-    <style>
-        .management-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .rem-form {
-            background: var(--color-white);
-            border: var(--border-width) solid var(--color-black);
-            padding: 1.5rem;
-            border-radius: var(--radius-main);
-            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .rem-list-container {
-            background: var(--color-white);
-            border: var(--border-width) solid var(--color-black);
-            padding: 1rem;
-            border-radius: var(--radius-main);
-            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-        }
-
-        .rem-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .rem-table th,
-        .rem-table td {
-            border: var(--border-width) solid var(--color-black);
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        .rem-table th {
-            background: var(--color-gray);
-            text-transform: uppercase;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        .rem-table td {
-            vertical-align: middle;
-        }
-
-        .event-time {
-            font-weight: bold;
-            color: var(--color-blue);
-        }
-    </style>
 </head>
 
 <body>
     <!-- Sidebar Removed -->
 
     <main>
-        <div class="management-container">
-            <header>
+        <div class="management-container" style="height: 100%; overflow: hidden;">
+            <header class="dashboard-header" style="margin-bottom: 1rem;">
                 <h1>QUẢN LÝ NHẮC NHỞ</h1>
+                <button id="btn-open-modal" class="pixel-button blue mini">
+                    <span>+</span> THÊM MỚI
+                </button>
             </header>
 
-            <section class="rem-form">
-                <h2>THÊM NHẮC NHỞ MỚI</h2>
-                <form id="rem-form" class="form-grid">
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label for="eventName">Tên sự kiện / Nhắc nhở</label>
-                        <input type="text" id="eventName" class="pixel-input"
-                            placeholder="Ví dụ: Họp Sprint, Gửi báo cáo" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="date">Ngày diễn ra</label>
-                        <input type="date" id="date" class="pixel-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="time">Thời gian</label>
-                        <input type="time" id="time" class="pixel-input" required>
-                    </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label for="link">Đường dẫn liên quan (URL)</label>
-                        <input type="url" id="link" class="pixel-input" placeholder="https://...">
-                    </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label for="notes">Ghi chú thêm</label>
-                        <textarea id="notes" class="pixel-input" rows="3" style="resize: vertical;"></textarea>
-                    </div>
-                    <div class="form-group" style="grid-column: span 2; align-items: flex-end;">
-                        <button type="submit" class="pixel-button blue">LƯU NHẮC NHỞ</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="rem-list-container">
-                <h2>DANH SÁCH NHẮC NHỞ</h2>
-                <table class="rem-table">
+            <section class="management-list-container scrollable-container pixel-scrollbar">
+                <table class="management-table">
                     <thead>
                         <tr>
                             <th>Sự kiện</th>
@@ -142,7 +40,11 @@
         </div>
     </main>
 
+    <!-- MODAL FORM Removed (Handled by modal-manager.js) -->
+
     <script src="../js/lib/command-palette.js"></script>
+    <script src="../js/templates/forms.js"></script>
+    <script src="../js/lib/modal-manager.js"></script>
     <script src="../js/reminders.js" defer></script>
 </body>
 

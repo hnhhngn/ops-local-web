@@ -13,7 +13,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) {
         form.addEventListener("submit", handleFormSubmit);
     }
+
+    // Modal Event Listeners
+    const openModalBtn = document.getElementById("btn-open-modal");
+    const closeModalBtn = document.getElementById("btn-close-modal");
+
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            openForAdd();
+        });
+    }
+
+    // Close logic handled by Manager
 });
+
+// Modal Logic Replaced by Manager
+function openForAdd() {
+    editingRemId = null;
+    window.modalManager.open('reminder', 'THÊM NHẮC NHỞ MỚI', handleFormSubmit);
+}
+
 
 /**
  * Fetch reminders from server
@@ -100,6 +119,7 @@ async function handleFormSubmit(e) {
         const btn = document.querySelector("#rem-form button[type='submit']");
         if (btn) btn.innerText = "LƯU NHẮC NHỞ";
         renderReminders();
+        window.modalManager.close();
     }
 }
 
@@ -128,15 +148,20 @@ function editRem(id) {
     if (!rem) return;
 
     editingRemId = id;
-    document.getElementById("eventName").value = rem.eventName;
-    document.getElementById("date").value = rem.date;
-    document.getElementById("time").value = rem.time;
-    document.getElementById("link").value = rem.link || "";
-    document.getElementById("notes").value = rem.notes || "";
 
-    const btn = document.querySelector("#rem-form button[type='submit']");
-    if (btn) btn.innerText = "CẬP NHẬT NHẮC NHỞ";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.modalManager.open('reminder', 'CẬP NHẬT NHẮC NHỞ', handleFormSubmit, () => {
+        const eventNameEl = document.getElementById("eventName");
+        if (eventNameEl) {
+            eventNameEl.value = rem.eventName;
+            document.getElementById("date").value = rem.date;
+            document.getElementById("time").value = rem.time;
+            document.getElementById("link").value = rem.link || "";
+            document.getElementById("notes").value = rem.notes || "";
+
+            const btn = document.querySelector("#rem-form button[type='submit']");
+            if (btn) btn.innerText = "CẬP NHẬT NHẮC NHỞ";
+        }
+    });
 }
 
 /**

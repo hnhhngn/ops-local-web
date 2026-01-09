@@ -16,10 +16,47 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("auto-form");
     if (form) form.addEventListener("submit", handleFormSubmit);
 
-    // Action Builder Handlers
-    const btnAddAction = document.getElementById("btnAddAction");
-    if (btnAddAction) btnAddAction.addEventListener("click", addActionToBuffer);
+    // Event delegation is cleaner, but since we re-render, we bind in onRender callback
+
+    // Modal Event Listeners
+    const openModalBtn = document.getElementById("btn-open-modal");
+    const closeModalBtn = document.getElementById("btn-close-modal");
+
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            openForAdd();
+        });
+    }
+
+    // Close handled by Manager
 });
+
+// Modal Logic Replaced by Manager
+function openForAdd() {
+    editingPresetId = null;
+    currentActions = [];
+
+    // Pass a callback to bind events AFTER the modal is rendered
+    window.modalManager.open('automation', 'THIẾT LẬP KỊCH BẢN (PRESET)', handleFormSubmit, (modalBody) => {
+        // Re-bind Action Builder Events
+        const btnAddAction = modalBody.querySelector("#btnAddAction");
+        if (btnAddAction) btnAddAction.addEventListener("click", addActionToBuffer);
+
+        // Initial render of empty buffer
+        renderActionBuffer();
+
+        // Reset form fields for new preset
+        const nameEl = modalBody.querySelector("#presetName");
+        if (nameEl) {
+            nameEl.value = "";
+            modalBody.querySelector("#presetDesc").value = "";
+            const submitBtn = modalBody.querySelector("#auto-form button[type='submit']");
+            if (submitBtn) submitBtn.innerText = "LƯU KỊCH BẢN";
+        }
+    });
+}
+
+// Logic for closing is now handled by manager
 
 /**
  * Fetch presets
@@ -79,7 +116,7 @@ async function runPreset(id) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ actions: pset.actions })
         });
-        
+
         const result = await response.json();
         if (result.ok) {
             alert("Đã thực thi xong kịch bản!");
@@ -131,6 +168,8 @@ function removeActionFromBuffer(index) {
  */
 function renderActionBuffer() {
     const ul = document.getElementById("new-action-list");
+    if (!ul) return; // Ensure ul exists before trying to manipulate it
+
     ul.innerHTML = "";
 
     if (currentActions.length === 0) {
@@ -180,8 +219,9 @@ async function handleFormSubmit(e) {
     const success = await savePresetsToServer(updatedList);
     if (success) {
         allPresets = updatedList;
-        cancelEdit(); // Reset form
+        cancelEdit(); // Reset form state
         renderPresets();
+        window.modalManager.close();
     }
 }
 
@@ -210,20 +250,26 @@ function editPreset(id) {
     if (!pset) return;
 
     editingPresetId = id;
-    document.getElementById("presetName").value = pset.name;
-    document.getElementById("presetDesc").value = pset.description || "";
-    
     // Load actions into buffer
     currentActions = [...(pset.actions || [])];
-    renderActionBuffer();
 
-    const btn = document.querySelector("#auto-form button[type='submit']");
-    if (btn) btn.innerText = "CẬP NHẬT KỊCH BẢN";
-    
-    // Add cancel button if not existing
-    // ... (simplified for now)
+    window.modalManager.open('automation', 'CẬP NHẬT KỊCH BẢN', handleFormSubmit, (modalBody) => {
+        // Fill Data
+        const nameEl = modalBody.querySelector("#presetName");
+        if (nameEl) {
+            nameEl.value = pset.name;
+            modalBody.querySelector("#presetDesc").value = pset.description || "";
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+            const btn = modalBody.querySelector("#auto-form button[type='submit']");
+            if (btn) btn.innerText = "CẬP NHẬT KỊCH BẢN";
+
+            // Re-bind Action Builder Events
+            const btnAddAction = modalBody.querySelector("#btnAddAction");
+            if (btnAddAction) btnAddAction.addEventListener("click", addActionToBuffer);
+
+            renderActionBuffer();
+        }
+    });
 }
 
 /**
