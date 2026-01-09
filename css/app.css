@@ -827,3 +827,102 @@ textarea.pixel-input {
     font-weight: bold;
     color: var(--color-blue);
 }
+
+/* ============================== DASHBOARD WIDGET OPTIMIZATIONS (Phase 13+) ============================== */
+
+/* Task Item */
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px dotted rgba(0,0,0,0.1);
+    transition: background 150ms;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-item:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.task-text {
+    flex: 1;
+    cursor: pointer;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-text:hover {
+    color: var(--color-blue);
+    text-decoration: underline;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-edit-mini {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.3;
+    font-size: 0.9rem;
+    padding: 2px;
+}
+
+.task-item:hover .btn-edit-mini {
+    opacity: 1;
+}
+
+.btn-edit-mini:hover {
+    color: var(--color-blue);
+    transform: scale(1.1);
+}
+
+/* Quick Access Grid */
+.dashboard-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+    padding: 0.5rem;
+}
+
+.access-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: var(--radius-small);
+    box-shadow: 2px 2px 0 var(--color-black);
+    cursor: pointer;
+    transition: transform 100ms, box-shadow 100ms;
+    font-size: 0.85rem;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.access-item:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--color-black);
+    background: #fdfdfd;
+}
+
+.access-item:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--color-black);
+}
+
+.access-icon {
+    font-size: 1.2rem;
+    min-width: 24px;
+    text-align: center;
+}

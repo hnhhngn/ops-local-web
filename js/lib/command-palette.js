@@ -12,9 +12,9 @@ class CommandPalette {
         this.filteredItems = [];
 
         // Path logic
-        const isRoot = !window.location.pathname.includes('/pages/');
-        this.prefix = isRoot ? 'pages/' : '';
-        this.rootPath = isRoot ? 'index.html' : '../index.html';
+        this.isRoot = !window.location.pathname.includes('/pages/');
+        this.prefix = this.isRoot ? 'pages/' : '';
+        this.rootPath = this.isRoot ? 'index.html' : '../index.html';
 
         this.initUI();
         this.initEvents();
@@ -28,15 +28,53 @@ class CommandPalette {
                 { label: "Automation", path: this.prefix + "automation.html" }
             ],
             commands: [
-                { label: "Go: Dashboard", href: this.rootPath },
-                { label: "Go: Tasks", href: this.prefix + "tasks.html" },
+
+                // Actions: Tasks
                 {
-                    label: "Layout: Toggle Edit Mode", action: () => {
-                        if (typeof window.toggleEditMode === 'function') window.toggleEditMode();
+                    label: "Tasks: Create New",
+                    action: () => {
+                        if (window.openTaskAddModal) window.openTaskAddModal();
+                        else if (document.getElementById("btn-open-modal")) document.getElementById("btn-open-modal").click();
+                        else alert("Vui lòng truy cập Dashboard hoặc trang Tasks để thực hiện.");
+                    }
+                },
+                // Actions: Links
+                {
+                    label: "Links: Create New",
+                    action: () => {
+                        if (window.openLinkAddModal) window.openLinkAddModal();
+                        else if (document.getElementById("btn-open-modal")) document.getElementById("btn-open-modal").click();
+                        else window.location.href = this.prefix + 'links.html';
+                    }
+                },
+                // Actions: Reminders
+                {
+                    label: "Reminders: Create New",
+                    action: () => {
+                        if (window.openRemAddModal) window.openRemAddModal();
+                        else if (document.getElementById("btn-open-modal")) document.getElementById("btn-open-modal").click();
+                        else window.location.href = this.prefix + 'reminders.html';
+                    }
+                },
+                // Actions: Automation
+                {
+                    label: "Automation: Create New",
+                    action: () => {
+                        if (window.openAutoAddModal) window.openAutoAddModal();
+                        else if (document.getElementById("btn-open-modal")) document.getElementById("btn-open-modal").click();
+                        else window.location.href = this.prefix + 'automation.html';
+                    }
+                },
+
+                // Layout & UI
+                {
+                    label: "View: Toggle Dark Mode", action: () => {
+                        // Implemented in base.js or app.js? (Actually Phase 11 was reverted/mixed, let's stick to what we see)
+                        // The user instructions mentioned Phase 11 was reverted. Ignoring/Hidden for now.
                     }
                 },
                 {
-                    label: "Layout: Start Editing", action: () => {
+                    label: "Layout: Toggle Edit Mode", action: () => {
                         if (typeof window.toggleEditMode === 'function') window.toggleEditMode();
                     }
                 },
@@ -155,9 +193,28 @@ class CommandPalette {
             source = this.registry.pages;
         }
 
-        this.filteredItems = source.filter(item =>
-            item.label.toLowerCase().includes(searchTerm)
-        );
+        const pageMapping = {
+            'Tasks:': 'tasks.html',
+            'Links:': 'links.html',
+            'Reminders:': 'reminders.html',
+            'Automation:': 'automation.html'
+        };
+
+        this.filteredItems = source.filter(item => {
+            const matchesSearch = item.label.toLowerCase().includes(searchTerm);
+            if (!matchesSearch) return false;
+
+            // Contextual Filtering for Commands
+            if (this.mode === 'COMMANDS') {
+                const category = Object.keys(pageMapping).find(key => item.label.startsWith(key));
+                if (category) {
+                    // Show if on Dashboard OR on the specific page
+                    if (this.isRoot) return true;
+                    return window.location.pathname.includes(pageMapping[category]);
+                }
+            }
+            return true;
+        });
 
         this.selectedIndex = 0;
         this.render();

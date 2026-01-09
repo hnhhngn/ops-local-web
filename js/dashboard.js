@@ -103,10 +103,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Render tasks to dashboard widget (Top 8)
    */
+  /**
+   * Render tasks to dashboard widget (Top 8)
+   */
   const renderDashboardTasks = (tasks) => {
     if (!dashboardTaskList) return;
     dashboardTaskList.innerHTML = "";
 
+    // Sort by priority (High -> Medium -> Low)
     const sortedTasks = [...tasks].sort((a, b) => {
       const p = { high: 3, medium: 2, low: 1 };
       return (p[b.priority] || 0) - (p[a.priority] || 0);
@@ -115,73 +119,250 @@ document.addEventListener("DOMContentLoaded", () => {
     sortedTasks.forEach((task) => {
       const li = document.createElement("li");
       li.className = "task-item";
-      const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "");
+
+      const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "gray");
+      const priorityLabel = task.priority === "high" ? "High" : (task.priority === "medium" ? "Med" : "Low");
 
       li.innerHTML = `
-        <input type="checkbox" ${task.progress === 100 ? "checked" : ""}> 
-        <span onclick="location.href='pages/tasks.html'" style="cursor:pointer">${task.name}</span>
-        ${priorityClass ? `<span class="badge ${priorityClass}">${task.priority}</span>` : ""}
+        <label class="pixel-checkbox">
+            <input type="checkbox" ${task.progress === 100 ? "checked" : ""}>
+            <span class="checkmark"></span>
+        </label>
+        <div class="task-text" title="${task.name}">${task.name}</div>
+        <div class="task-meta">
+            <span class="badge ${priorityClass} mini">${priorityLabel}</span>
+            <button class="btn-edit-mini" title="Edit Task">✎</button>
+        </div>
       `;
-      dashboardTaskList.appendChild(li);
-    });
 
-    if (tasks.length === 0) {
-      dashboardTaskList.innerHTML = '<li class="task-item">No tasks found</li>';
-    }
-  };
-
-  /**
-   * Handle Quick Add task from dashboard
-   */
-  if (quickTaskBtn) {
-    quickTaskBtn.addEventListener("click", () => {
-      // Open Modal with pre-filled name if typed
-      const initialName = quickTaskInput.value.trim();
-
-      window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', async (e) => {
-        // Handle Submit Logic (Duplicated from tasks.js effectively, or better, extracted to service)
-        // For Phase 13, we'll implement a simple fetch here.
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const task = {
-          id: Date.now().toString(),
-          name: formData.get("name"), // Use full form data
-          type: document.getElementById("type").value,
-          priority: document.getElementById("priority").value,
-          startDate: document.getElementById("startDate").value,
-          endDate: document.getElementById("endDate").value,
-          progress: parseInt(document.getElementById("progress").value) || 0,
-          notes: document.getElementById("notes").value
-        };
+      // Checkbox Logic
+      const checkbox = li.querySelector("input[type='checkbox']");
+      checkbox.addEventListener("change", async (e) => {
+        const newProgress = e.target.checked ? 100 : 0;
+        // Optimistic update
+        task.progress = newProgress;
 
         try {
-          const allTasksResponse = await fetch("/api/data?file=tasks.json");
-          const allTasks = await allTasksResponse.json();
-          allTasks.push(task);
+          // Re-fetch all to ensure sync (simplified)
+          const res = await fetch("/api/data?file=tasks.json");
+          const all = await res.json();
+          const target = all.find(t => t.id === task.id);
+          if (target) target.progress = newProgress;
 
           await fetch("/api/data?file=tasks.json", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(allTasks)
+            body: JSON.stringify(all)
           });
-
-          window.modalManager.close();
-          loadDashboardTasks(); // Refresh widget
-          quickTaskInput.value = "";
-        } catch (err) {
-          console.error(err);
-          alert("Lỗi khi lưu task từ dashboard.");
-        }
-      }, (modalBody) => {
-        // Pre-fill name from quick input
-        if (initialName) {
-          setTimeout(() => {
-            const nameInput = modalBody.querySelector("#name");
-            if (nameInput) nameInput.value = initialName;
-          }, 50);
-        }
+        } catch (err) { console.error(err); }
       });
+
+      // Edit Button Logic
+      li.querySelector(".btn-edit-mini").addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.modalManager.open('task', 'CẬP NHẬT CÔNG VIỆC', async (ev) => {
+          ev.preventDefault();
+          const formData = new FormData(ev.target);
+          // Merge updates
+          try {
+            const res = await fetch("/api/data?file=tasks.json");
+            const all = await res.json();
+            const idx = all.findIndex(t => t.id === task.id);
+            if (idx !== -1) {
+              all[idx] = {
+                ...all[idx],
+                name: formData.get("name"),
+                type: document.getElementById("type").value,
+                priority: document.getElementById("priority").value,
+                startDate: document.getElementById("startDate").value,
+                endDate: document.getElementById("endDate").value,
+                progress: parseInt(document.getElementById("progress").value) || 0,
+                notes: document.getElementById("notes").value
+              };
+
+              await fetch("/api/data?file=tasks.json", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(all)
+              });
+              window.modalManager.close();
+              loadDashboardTasks();
+            }
+          } catch (err) { console.error(err); }
+        },
+          // onRender: Pre-fill
+          (modalBody) => {
+            modalBody.querySelector("#name").value = task.name;
+            modalBody.querySelector("#type").value = task.type || "code";
+            modalBody.querySelector("#priority").value = task.priority || "medium";
+            modalBody.querySelector("#startDate").value = task.startDate || "";
+            modalBody.querySelector("#endDate").value = task.endDate || "";
+            modalBody.querySelector("#progress").value = task.progress || 0;
+            modalBody.querySelector("#notes").value = task.notes || "";
+
+            // Update submit button text
+            const btn = modalBody.querySelector("button[type='submit']");
+            if (btn) btn.innerText = "LƯU THAY ĐỔI";
+          });
+      });
+
+      // Click text to open edit as well
+      li.querySelector(".task-text").addEventListener("click", () => {
+        li.querySelector(".btn-edit-mini").click();
+      });
+
+      dashboardTaskList.appendChild(li);
     });
+
+    if (tasks.length === 0) {
+      dashboardTaskList.innerHTML = '<li class="task-item" style="justify-content:center; color:var(--color-muted);">No tasks found</li>';
+    }
+  };
+
+  /**
+   * Global Creation Triggers for Dashboard/Command Palette
+   */
+  window.openTaskAddModal = () => {
+    const initialName = quickTaskInput ? quickTaskInput.value.trim() : "";
+    window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const task = {
+        id: Date.now().toString(),
+        name: formData.get("name"),
+        type: document.getElementById("type").value,
+        priority: document.getElementById("priority").value,
+        startDate: document.getElementById("startDate").value,
+        endDate: document.getElementById("endDate").value,
+        progress: parseInt(document.getElementById("progress").value) || 0,
+        notes: document.getElementById("notes").value
+      };
+
+      try {
+        const res = await fetch("/api/data?file=tasks.json");
+        const all = await res.json();
+        all.push(task);
+        await fetch("/api/data?file=tasks.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(all)
+        });
+        window.modalManager.close();
+        loadDashboardTasks();
+        if (quickTaskInput) quickTaskInput.value = "";
+      } catch (err) { console.error(err); }
+    }, (modalBody) => {
+      if (initialName) {
+        setTimeout(() => {
+          const nameInput = modalBody.querySelector("#name");
+          if (nameInput) nameInput.value = initialName;
+        }, 50);
+      }
+    });
+  };
+
+  window.openLinkAddModal = () => {
+    window.modalManager.open('link', 'THÊM ĐƯỜNG DẪN MỚI', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const link = {
+        id: Date.now().toString(),
+        label: formData.get("label"),
+        path: formData.get("path"),
+        type: formData.get("type"),
+        group: formData.get("group")
+      };
+      try {
+        const res = await fetch("/api/data?file=links.json");
+        const all = await res.json();
+        all.push(link);
+        await fetch("/api/data?file=links.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(all)
+        });
+        window.modalManager.close();
+        loadDashboardAccess(); // Refresh link grid
+      } catch (err) { console.error(err); }
+    });
+  };
+
+  window.openRemAddModal = () => {
+    window.modalManager.open('reminder', 'THÊM NHẮC NHỞ MỚI', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const rem = {
+        id: Date.now().toString(),
+        eventName: formData.get("eventName"),
+        date: formData.get("date"),
+        time: formData.get("time"),
+        link: formData.get("link"),
+        notes: formData.get("notes")
+      };
+      try {
+        const res = await fetch("/api/data?file=reminders.json");
+        const all = await res.json();
+        all.push(rem);
+        await fetch("/api/data?file=reminders.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(all)
+        });
+        window.modalManager.close();
+        if (typeof loadDashboardReminders === 'function') loadDashboardReminders();
+      } catch (err) { console.error(err); }
+    });
+  };
+
+  window.openAutoAddModal = () => {
+    // For Automation, we need to handle the action builder in onRender
+    window.modalManager.open('automation', 'THIẾT LẬP KỊCH BẢN MỚI', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const preset = {
+        id: Date.now().toString(),
+        name: formData.get("presetName"),
+        description: formData.get("presetDesc"),
+        actions: window.currentActions || []
+      };
+      try {
+        const res = await fetch("/api/data?file=automation.json");
+        const all = await res.json();
+        all.push(preset);
+        await fetch("/api/data?file=automation.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(all)
+        });
+        window.modalManager.close();
+      } catch (err) { console.error(err); }
+    }, (modalBody) => {
+      // Re-init action builder logic (simplified)
+      window.currentActions = [];
+      const addBtn = modalBody.querySelector("#add-action-btn");
+      if (addBtn) {
+        addBtn.onclick = () => {
+          const type = modalBody.querySelector("#actionType").value;
+          const val = modalBody.querySelector("#actionValue").value;
+          if (val) {
+            window.currentActions.push({ type, value: val });
+            // We would need a way to render this buffer in the modalBody
+            // For simplicity, let's just alert for now or implement minimally
+            const list = modalBody.querySelector(".action-list-mini");
+            if (list) {
+              const li = document.createElement("li");
+              li.className = "action-item";
+              li.innerHTML = `<span>${type}: ${val}</span>`;
+              list.appendChild(li);
+            }
+          }
+        };
+      }
+    });
+  };
+
+  if (quickTaskBtn) {
+    quickTaskBtn.addEventListener("click", () => window.openTaskAddModal());
   }
   if (quickTaskInput) {
     quickTaskInput.addEventListener("keypress", (e) => {
@@ -216,25 +397,56 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Render Quick Access items
    */
+  /**
+   * Render Quick Access items
+   */
   const renderDashboardAccess = (links) => {
     if (!dashboardAccessGrid) return;
     dashboardAccessGrid.innerHTML = "";
 
+    // Ensure grid container class
+    dashboardAccessGrid.className = "dashboard-access-grid";
+
     links.forEach((link) => {
       const item = document.createElement("div");
       item.className = "access-item";
-      const icon = link.type === "url" ? "🌐" : (link.type === "folder" ? "📁" : (link.type === "file" ? "📄" : "🛠️"));
-      item.innerHTML = `${icon} ${link.label}`;
-      item.title = link.path;
+
+      const iconMap = {
+        'url': '🌐',
+        'folder': '📁',
+        'file': '📄',
+        'app': '🚀'
+      };
+      const icon = iconMap[link.type] || '🔗';
+
+      item.innerHTML = `
+        <span class="access-icon">${icon}</span>
+        <span class="access-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${link.label}</span>
+      `;
+      item.title = `${link.label} (${link.path})`;
       item.setAttribute("data-path", link.path);
+
+      // Left click to launch
       item.onclick = function () {
         launchResource(this.getAttribute("data-path"));
       };
+
+      // Right click (context menu) to edit - simplified to shift+click for now or add edit button?
+      // For dashboard simplicity, let's keep it clean. 
+      // Maybe a small edit button on hover?
+      // Let's rely on Management Page for full editing of Links for now to avoid clutter, 
+      // OR implement a context menu later. 
+      // For now, let's just make them look good. 
+
       dashboardAccessGrid.appendChild(item);
     });
 
     if (links.length === 0) {
-      dashboardAccessGrid.innerHTML = '<div class="access-item" onclick="location.href=\'pages/links.html\'">➕ Add Link</div>';
+      dashboardAccessGrid.innerHTML = `
+        <div class="access-item" style="justify-content:center; border-style:dashed; opacity:0.6;" onclick="location.href='pages/links.html'">
+            <span>+ Add Link</span>
+        </div>
+      `;
     }
   };
 
