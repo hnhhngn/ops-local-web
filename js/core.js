@@ -572,5 +572,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial load
   loadDashboardAccess();
+
+  /* ============================== DASHBOARD REMINDERS ============================== */
+
+  const dashboardRemindersList = document.getElementById("dashboard-reminders-list");
+
+  /**
+   * Load Reminders
+   */
+  const loadDashboardReminders = async () => {
+    if (!dashboardRemindersList) return;
+
+    try {
+      const response = await fetch("/api/data?file=reminders.json");
+      if (!response.ok) return;
+      const data = await response.json();
+      const reminders = Array.isArray(data) ? data : (data ? [data] : []);
+      renderDashboardReminders(reminders);
+    } catch (err) {
+      console.error("Dashboard reminders load error:", err);
+    }
+  };
+
+  /**
+   * Render Reminders (Sorted by time, filter upcoming if possible)
+   */
+  const renderDashboardReminders = (reminders) => {
+    if (!dashboardRemindersList) return;
+    dashboardRemindersList.innerHTML = "";
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
+    // Filter for today or future, and sort
+    const sorted = reminders
+      .filter(r => r.date >= todayStr)
+      .sort((a, b) => (a.date + " " + a.time).localeCompare(b.date + " " + b.time))
+      .slice(0, 5); // Show top 5
+
+    sorted.forEach((rem) => {
+      const li = document.createElement("li");
+      li.className = "task-item";
+      li.style.cursor = "pointer";
+      
+      const isToday = rem.date === todayStr;
+      const dateDisplay = isToday ? "Hôm nay" : rem.date.split("-").slice(1).join("/");
+      
+      li.innerHTML = `<span>🔔 ${dateDisplay} ${rem.time} - ${rem.eventName}</span>`;
+      
+      li.onclick = () => {
+        if (rem.link) {
+          window.open(rem.link, "_blank");
+        } else {
+          location.href = "reminders.html";
+        }
+      };
+      dashboardRemindersList.appendChild(li);
+    });
+
+    if (sorted.length === 0) {
+      dashboardRemindersList.innerHTML = '<li class="task-item" onclick="location.href=\'reminders.html\'">➕ Chưa có nhắc nhở</li>';
+    }
+  };
+
+  // Initial load
+  loadDashboardReminders();
 });
 

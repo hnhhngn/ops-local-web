@@ -229,7 +229,7 @@ function Handle-ApiRequest($Request, $Response) {
 
             try {
                 $json = $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
-                Set-Content -Path $FilePath -Value $json -Force -ErrorAction Stop
+                Set-Content -Path $FilePath -Value $json -Force -Encoding utf8 -ErrorAction Stop
                 Write-JsonResponse $Response 200 @{ ok = $true }
                 break
             }

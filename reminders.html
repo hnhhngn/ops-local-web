@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Nhắc nhở - IJS Ops</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <style>
+        .management-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .rem-form {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1.5rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .rem-list-container {
+            background: var(--color-white);
+            border: var(--border-width) solid var(--color-black);
+            padding: 1rem;
+            border-radius: var(--radius-main);
+            box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
+        }
+
+        .rem-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .rem-table th,
+        .rem-table td {
+            border: var(--border-width) solid var(--color-black);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .rem-table th {
+            background: var(--color-gray);
+            text-transform: uppercase;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .rem-table td {
+            vertical-align: middle;
+        }
+
+        .event-time {
+            font-weight: bold;
+            color: var(--color-blue);
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="pixel-sidebar" id="sidebar">
+        <div class="sidebar-header" onclick="location.href='index.html'">
+            <span class="sidebar-brand">IJS</span>
+            <span class="sidebar-toggle-icon">◀</span>
+        </div>
+
+        <nav>
+            <div class="sidebar-link" onclick="location.href='index.html'">
+                <span class="icon">⚙️</span>
+                <span class="text">Dashboard</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='tasks.html'">
+                <span class="icon">📝</span>
+                <span class="text">Tasks</span>
+            </div>
+            <div class="sidebar-link" onclick="location.href='links.html'">
+                <span class="icon">🚀</span>
+                <span class="text">Quick Access</span>
+            </div>
+            <div class="sidebar-link is-active">
+                <span class="icon">🔔</span>
+                <span class="text">Reminders</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="management-container">
+            <header>
+                <h1>QUẢN LÝ NHẮC NHỞ</h1>
+            </header>
+
+            <section class="rem-form">
+                <h2>THÊM NHẮC NHỞ MỚI</h2>
+                <form id="rem-form" class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="eventName">Tên sự kiện / Nhắc nhở</label>
+                        <input type="text" id="eventName" class="pixel-input"
+                            placeholder="Ví dụ: Họp Sprint, Gửi báo cáo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Ngày diễn ra</label>
+                        <input type="date" id="date" class="pixel-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Thời gian</label>
+                        <input type="time" id="time" class="pixel-input" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="link">Đường dẫn liên quan (URL)</label>
+                        <input type="url" id="link" class="pixel-input" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="notes">Ghi chú thêm</label>
+                        <textarea id="notes" class="pixel-input" rows="3" style="resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2; align-items: flex-end;">
+                        <button type="submit" class="pixel-button blue">LƯU NHẮC NHỞ</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="rem-list-container">
+                <h2>DANH SÁCH NHẮC NHỞ</h2>
+                <table class="rem-table">
+                    <thead>
+                        <tr>
+                            <th>Sự kiện</th>
+                            <th>Mốc thời gian</th>
+                            <th>Ghi chú</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rem-list-body">
+                        <!-- Content loaded by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/reminders.js" defer></script>
+</body>
+
+</html>
