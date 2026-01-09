@@ -41,6 +41,14 @@
     </aside>
 
     <main>
+        <header class="dashboard-header">
+            <h1>DASHBOARD</h1>
+            <button id="edit-mode-toggle" class="pixel-button yellow">
+                <span class="icon">🏗️</span>
+                <span class="text">Edit Layout</span>
+            </button>
+        </header>
+
         <section id="dashboard" class="content-section is-active">
 
             <div id="widget-tasks" class="pixel-widget" data-w="8" data-h="12"
@@ -111,6 +119,9 @@
         </section>
     </main>
 
+    <!-- UI Libraries -->
+    <script src="js/lib/ops-grid.js"></script>
+    <!-- Main Logic -->
     <script src="js/core.js" defer></script>
 </body>
 

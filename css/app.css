@@ -55,6 +55,21 @@
     width: 100%;
 }
 
+/* ============================== DASHBOARD HEADER ============================== */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    color: var(--color-black);
+    text-shadow: 2px 2px 0 var(--color-white);
+}
+
 /* ============================== SIDEBAR & NAVIGATION ============================== */
 .pixel-sidebar {
     position: fixed;
