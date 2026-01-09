@@ -395,5 +395,111 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeConfig = null;
     hideGhost();
   });
+
+  /* ============================== DASHBOARD TASK WIDGET ============================== */
+
+  const dashboardTaskList = document.getElementById("dashboard-task-list");
+  const quickTaskInput = document.getElementById("dashboard-quick-task-input");
+  const quickTaskBtn = document.getElementById("dashboard-quick-task-btn");
+
+  /**
+   * Load tasks for dashboard display
+   */
+  const loadDashboardTasks = async () => {
+    if (!dashboardTaskList) return;
+
+    try {
+      const response = await fetch("/api/data?file=tasks.json");
+      if (!response.ok) return;
+      const data = await response.json();
+      const tasks = Array.isArray(data) ? data : (data ? [data] : []);
+      renderDashboardTasks(tasks);
+    } catch (err) {
+      console.error("Dashboard task load error:", err);
+    }
+  };
+
+  /**
+   * Render tasks to dashboard widget (Top 8)
+   */
+  const renderDashboardTasks = (tasks) => {
+    if (!dashboardTaskList) return;
+    dashboardTaskList.innerHTML = "";
+
+    // Sort by priority (high first) and take top 8
+    const sortedTasks = [...tasks].sort((a, b) => {
+      const p = { high: 3, medium: 2, low: 1 };
+      return (p[b.priority] || 0) - (p[a.priority] || 0);
+    }).slice(0, 8);
+
+    sortedTasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.className = "task-item";
+      const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "");
+
+      li.innerHTML = `
+        <input type="checkbox" ${task.progress === 100 ? "checked" : ""}> 
+        <span onclick="location.href='tasks.html'" style="cursor:pointer">${task.name}</span>
+        ${priorityClass ? `<span class="badge ${priorityClass}">${task.priority}</span>` : ""}
+      `;
+      dashboardTaskList.appendChild(li);
+    });
+
+    if (tasks.length === 0) {
+      dashboardTaskList.innerHTML = '<li class="task-item">No tasks found</li>';
+    }
+  };
+
+  /**
+   * Handle Quick Add task from dashboard
+   */
+  const handleQuickAdd = async () => {
+    if (!quickTaskInput || !quickTaskInput.value.trim()) return;
+
+    const newTask = {
+      id: "task-" + Date.now(),
+      name: quickTaskInput.value.trim(),
+      type: "custom",
+      priority: "low",
+      startDate: new Date().toISOString().split("T")[0],
+      progress: 0,
+      notes: ""
+    };
+
+    try {
+      const response = await fetch("/api/data?file=tasks.json");
+      let tasks = [];
+      if (response.ok) {
+        const data = await response.json();
+        tasks = Array.isArray(data) ? data : (data ? [data] : []);
+      }
+      tasks.push(newTask);
+
+      const saveRes = await fetch("/api/data?file=tasks.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tasks)
+      });
+
+      if (saveRes.ok) {
+        quickTaskInput.value = "";
+        loadDashboardTasks();
+      }
+    } catch (err) {
+      console.error("Quick add error:", err);
+    }
+  };
+
+  if (quickTaskBtn) {
+    quickTaskBtn.addEventListener("click", handleQuickAdd);
+  }
+  if (quickTaskInput) {
+    quickTaskInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") handleQuickAdd();
+    });
+  }
+
+  // Initial load
+  loadDashboardTasks();
 });
 
