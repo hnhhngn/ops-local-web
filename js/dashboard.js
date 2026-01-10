@@ -80,8 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ============================== DASHBOARD TASK WIDGET ============================== */
 
   const dashboardTaskList = document.getElementById("dashboard-task-list");
-  const quickTaskInput = document.getElementById("dashboard-quick-task-input");
-  const quickTaskBtn = document.getElementById("dashboard-quick-task-btn");
+  const taskFilterInput = document.getElementById("dashboard-task-filter");
+  let currentFilterText = ""; // Store current filter text
 
   /**
    * Load tasks for dashboard display
@@ -107,8 +107,35 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dashboardTaskList) return;
     dashboardTaskList.innerHTML = "";
 
-    // Filter: Only incomplete
-    const incompleteTasks = tasks.filter(task => (task.progress || 0) < 100);
+    // Filter: Only incomplete + match filter text
+    const filterText = currentFilterText.toLowerCase();
+    const incompleteTasks = tasks.filter(task => {
+      const isIncomplete = (task.progress || 0) < 100;
+      const matchesFilter = !filterText || (task.name && task.name.toLowerCase().includes(filterText));
+      return isIncomplete && matchesFilter;
+    });
+
+    // Build parent-child map for tree rendering
+    const taskMap = {};
+    tasks.forEach(t => taskMap[t.id] = t);
+
+    // Helper: Get level of task (0 = root, 1 = child of root, etc.)
+    const getTaskLevel = (task, allTasks, maxDepth = 4) => {
+      let level = 0;
+      let current = task;
+      while (current.parentId && level < maxDepth) {
+        const parent = allTasks.find(t => t.id === current.parentId);
+        if (!parent) break;
+        current = parent;
+        level++;
+      }
+      return level;
+    };
+
+    // Helper: Check if task has children
+    const hasChildren = (taskId, allTasks) => {
+      return allTasks.some(t => t.parentId === taskId);
+    };
 
     // Sort: Priority (High->Low) -> Start Date (ASC) -> End Date (ASC)
     const sortedTasks = [...incompleteTasks].sort((a, b) => {
@@ -138,9 +165,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return 0;
     });
 
-    sortedTasks.forEach((task) => {
+    // Render tasks with hierarchy: root tasks first, then insert children after parents
+    const renderedIds = new Set();
+    const renderTaskItem = (task, level = 0) => {
+      if (renderedIds.has(task.id)) return;
+      renderedIds.add(task.id);
+
       const li = document.createElement("li");
-      li.className = "task-item multi-line";
+      const levelClass = level > 0 ? `level-${Math.min(level, 3)}` : "";
+      const hasChildrenClass = hasChildren(task.id, tasks) ? "has-children" : "";
+      li.className = `task-item multi-line ${levelClass} ${hasChildrenClass}`.trim();
 
       const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "gray");
       const priorityLabel = task.priority === "high" ? "High" : (task.priority === "medium" ? "Med" : "Low");
@@ -166,6 +200,8 @@ document.addEventListener("DOMContentLoaded", () => {
             </label>
             <div class="task-text" title="${task.name}">${task.name}</div>
             <div class="task-meta">
+                ${(task.qas || []).length > 0 ? `<span class="badge gray mini">📝</span>` : ""}
+                ${(task.bugs || []).length > 0 ? `<span class="badge red mini">🐛</span>` : ""}
                 <span class="badge ${priorityClass} mini">${priorityLabel}</span>
                 <button class="btn-edit-mini" title="Edit Task">✎</button>
             </div>
@@ -190,6 +226,20 @@ document.addEventListener("DOMContentLoaded", () => {
           const target = all.find(t => t.id === task.id);
           if (target) target.progress = newProgress;
 
+          // Auto-complete parent: If this task is completed and has a parent,
+          // check if all siblings are also completed
+          if (newProgress === 100 && task.parentId) {
+            const parent = all.find(t => t.id === task.parentId);
+            if (parent) {
+              const siblings = all.filter(t => t.parentId === task.parentId);
+              const allSiblingsComplete = siblings.every(t => (t.progress || 0) >= 100);
+              if (allSiblingsComplete) {
+                parent.progress = 100;
+                console.log(`Auto-completed parent task: ${parent.name}`);
+              }
+            }
+          }
+
           await fetch("/api/data?file=tasks.json", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -208,10 +258,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Edit Button Logic
       li.querySelector(".btn-edit-mini").addEventListener("click", (e) => {
         e.stopPropagation();
+        window.currentQas = [...(task.qas || [])];
+        window.currentBugs = [...(task.bugs || [])];
+
         window.modalManager.open('task', 'CẬP NHẬT CÔNG VIỆC', async (ev) => {
           ev.preventDefault();
           const formData = new FormData(ev.target);
-          // Merge updates
           try {
             const res = await fetch("/api/data?file=tasks.json");
             const all = await res.json();
@@ -220,12 +272,15 @@ document.addEventListener("DOMContentLoaded", () => {
               all[idx] = {
                 ...all[idx],
                 name: formData.get("name"),
+                parentId: document.getElementById("parentId").value || null,
                 type: document.getElementById("type").value,
                 priority: document.getElementById("priority").value,
                 startDate: document.getElementById("startDate").value,
                 endDate: document.getElementById("endDate").value,
                 progress: parseInt(document.getElementById("progress").value) || 0,
-                notes: document.getElementById("notes").value
+                notes: document.getElementById("notes").value,
+                qas: window.currentQas,
+                bugs: window.currentBugs
               };
 
               await fetch("/api/data?file=tasks.json", {
@@ -239,8 +294,23 @@ document.addEventListener("DOMContentLoaded", () => {
           } catch (err) { console.error(err); }
         },
           // onRender: Pre-fill
-          (modalBody) => {
+          async (modalBody) => {
+            // Populate parent dropdown
+            const res = await fetch("/api/data?file=tasks.json");
+            const allTasks = await res.json();
+            const parentSelect = modalBody.querySelector("#parentId");
+            if (parentSelect && allTasks) {
+              allTasks.forEach(t => {
+                if (t.id === task.id) return;
+                const opt = document.createElement("option");
+                opt.value = t.id;
+                opt.textContent = t.name;
+                parentSelect.appendChild(opt);
+              });
+            }
+
             modalBody.querySelector("#name").value = task.name;
+            modalBody.querySelector("#parentId").value = task.parentId || "";
             modalBody.querySelector("#type").value = task.type || "code";
             modalBody.querySelector("#priority").value = task.priority || "medium";
             modalBody.querySelector("#startDate").value = task.startDate || "";
@@ -248,7 +318,10 @@ document.addEventListener("DOMContentLoaded", () => {
             modalBody.querySelector("#progress").value = task.progress || 0;
             modalBody.querySelector("#notes").value = task.notes || "";
 
-            // Update submit button text
+            // Setup builders and render current items
+            setupItemBuildersInner(modalBody);
+            renderItemListsInner(modalBody);
+
             const btn = modalBody.querySelector("button[type='submit']");
             if (btn) btn.innerText = "LƯU THAY ĐỔI";
           });
@@ -260,10 +333,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       dashboardTaskList.appendChild(li);
-    });
+
+      // Recursively render children (sub-tasks)
+      const children = sortedTasks.filter(t => t.parentId === task.id);
+      children.forEach(child => renderTaskItem(child, level + 1));
+    };
+
+    // Render root tasks first (those without parentId, or whose parent is not in current list)
+    const rootTasks = sortedTasks.filter(t => !t.parentId || !taskMap[t.parentId]);
+    rootTasks.forEach(task => renderTaskItem(task, 0));
 
     if (incompleteTasks.length === 0) {
-      dashboardTaskList.innerHTML = '<li class="task-item" style="justify-content:center; color:var(--color-muted);">No incomplete tasks</li>';
+      const msg = currentFilterText
+        ? `Không tìm thấy "${currentFilterText}"`
+        : "No incomplete tasks";
+      dashboardTaskList.innerHTML = `<li class="task-item" style="justify-content:center; color:var(--color-muted);">${msg}</li>`;
     }
   };
 
@@ -271,19 +355,25 @@ document.addEventListener("DOMContentLoaded", () => {
    * Global Creation Triggers for Dashboard/Command Palette
    */
   window.openTaskAddModal = () => {
-    const initialName = quickTaskInput ? quickTaskInput.value.trim() : "";
+    // Store QAs and Bugs added during form session
+    window.currentQas = [];
+    window.currentBugs = [];
+
     window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const task = {
         id: Date.now().toString(),
         name: formData.get("name"),
+        parentId: document.getElementById("parentId").value || null,
         type: document.getElementById("type").value,
         priority: document.getElementById("priority").value,
         startDate: document.getElementById("startDate").value,
         endDate: document.getElementById("endDate").value,
         progress: parseInt(document.getElementById("progress").value) || 0,
-        notes: document.getElementById("notes").value
+        notes: document.getElementById("notes").value,
+        qas: window.currentQas || [],
+        bugs: window.currentBugs || []
       };
 
       try {
@@ -297,14 +387,58 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         window.modalManager.close();
         loadDashboardTasks();
-        if (quickTaskInput) quickTaskInput.value = "";
       } catch (err) { console.error(err); }
-    }, (modalBody) => {
-      if (initialName) {
-        setTimeout(() => {
-          const nameInput = modalBody.querySelector("#name");
-          if (nameInput) nameInput.value = initialName;
-        }, 50);
+    }, async (modalBody) => {
+      // Populate parent task dropdown
+      try {
+        const res = await fetch("/api/data?file=tasks.json");
+        const allTasks = await res.json();
+        const parentSelect = modalBody.querySelector("#parentId");
+        if (parentSelect && allTasks) {
+          // Only show tasks with level < 3 as potential parents (max 4 levels)
+          allTasks.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.textContent = t.name;
+            parentSelect.appendChild(opt);
+          });
+        }
+      } catch (err) { console.error(err); }
+
+      // QA Add Button
+      const btnAddQa = modalBody.querySelector("#btnAddQa");
+      if (btnAddQa) {
+        btnAddQa.onclick = () => {
+          const label = modalBody.querySelector("#qaLabel").value.trim();
+          const link = modalBody.querySelector("#qaLink").value.trim();
+          if (label) {
+            window.currentQas.push({ id: Date.now().toString(), label, link });
+            const list = modalBody.querySelector("#qa-list");
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">🔗</a>` : ''}`;
+            list.appendChild(li);
+            modalBody.querySelector("#qaLabel").value = "";
+            modalBody.querySelector("#qaLink").value = "";
+          }
+        };
+      }
+
+      // Bug Add Button
+      const btnAddBug = modalBody.querySelector("#btnAddBug");
+      if (btnAddBug) {
+        btnAddBug.onclick = () => {
+          const label = modalBody.querySelector("#bugLabel").value.trim();
+          const link = modalBody.querySelector("#bugLink").value.trim();
+          if (label) {
+            window.currentBugs.push({ id: Date.now().toString(), label, link });
+            const list = modalBody.querySelector("#bug-list");
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">🔗</a>` : ''}`;
+            list.appendChild(li);
+            modalBody.querySelector("#bugLabel").value = "";
+            modalBody.querySelector("#bugLink").value = "";
+          }
+        };
       }
     });
   };
@@ -414,12 +548,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  if (quickTaskBtn) {
-    quickTaskBtn.addEventListener("click", () => window.openTaskAddModal());
-  }
-  if (quickTaskInput) {
-    quickTaskInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") window.openTaskAddModal();
+  // Filter input listener with debounce
+  let filterTimeout = null;
+  if (taskFilterInput) {
+    taskFilterInput.addEventListener("input", (e) => {
+      clearTimeout(filterTimeout);
+      filterTimeout = setTimeout(() => {
+        currentFilterText = e.target.value.trim();
+        loadDashboardTasks();
+      }, 200); // 200ms debounce
     });
   }
 
@@ -771,4 +908,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial load
   loadDashboardAutomation();
+
+  /**
+   * Helper: Setup QA/Bug Builders for Dashboard Modals
+   */
+  function setupItemBuildersInner(modalBody) {
+    const setup = (btnId, labelId, linkId, store) => {
+      const btn = modalBody.querySelector(btnId);
+      if (!btn) return;
+      btn.onclick = () => {
+        const label = modalBody.querySelector(labelId).value.trim();
+        const link = modalBody.querySelector(linkId).value.trim();
+        if (label) {
+          store.push({ id: Date.now().toString(), label, link });
+          renderItemListsInner(modalBody);
+          modalBody.querySelector(labelId).value = "";
+          modalBody.querySelector(linkId).value = "";
+        }
+      };
+    };
+
+    setup("#btnAddQa", "#qaLabel", "#qaLink", window.currentQas);
+    setup("#btnAddBug", "#bugLabel", "#bugLink", window.currentBugs);
+  }
+
+  /**
+   * Helper: Render QA/Bug Lists in Dashboard Modals
+   */
+  function renderItemListsInner(modalBody) {
+    const renderList = (listId, items) => {
+      const list = modalBody.querySelector(listId);
+      if (!list) return;
+      list.innerHTML = "";
+      items.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${item.label}</span>
+          <div>
+            ${item.link ? `<a class="item-link" href="${item.link}" target="_blank">🔗</a>` : ""}
+            <button type="button" class="btn-remove-item" onclick="window.removeItemDashboard('${listId}', ${idx})">×</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    };
+
+    renderList("#qa-list", window.currentQas);
+    renderList("#bug-list", window.currentBugs);
+  }
+
+  // Global helper for remove button in Dashboard context
+  window.removeItemDashboard = (listId, idx) => {
+    if (listId === "#qa-list") window.currentQas.splice(idx, 1);
+    else window.currentBugs.splice(idx, 1);
+    // Need a way to re-render. Since we use window-level state, we just find the modal body
+    const modalBody = document.querySelector(".pixel-modal-body");
+    if (modalBody) renderItemListsInner(modalBody);
+  };
+
 });

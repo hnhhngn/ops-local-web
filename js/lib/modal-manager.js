@@ -43,11 +43,6 @@ class ModalManager {
 
         this.closeBtn.addEventListener('click', () => this.close());
 
-        // Close on overlay click
-        this.overlay.addEventListener('click', (e) => {
-            if (e.target === this.overlay) this.close();
-        });
-
         // Global keydown for Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.overlay.classList.contains('hidden')) {

@@ -75,144 +75,6 @@
     color: var(--color-black);
     text-shadow: 2px 2px 0 var(--color-white);
 }
-.pixel-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--sidebar-width);
-    background-color: var(--color-white);
-    border-right: var(--border-width) solid var(--color-black);
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-    transition: width 200ms;
-}
-
-.sidebar-header {
-    padding: 1.5rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: var(--border-width) solid var(--color-black);
-    background-color: var(--color-white);
-}
-    transition: all 120ms ease-out;
-    user-select: none;
-}
-
-.sidebar-header:active {
-    transform: translateY(var(--shadow-offset));
-    box-shadow: 0 0 0 var(--color-black);
-}
-
-.sidebar-brand {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--color-black);
-    overflow: hidden;
-    white-space: nowrap;
-    transition: opacity 150ms;
-}
-
-.sidebar-toggle-icon {
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 200ms;
-}
-
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 1rem;
-    padding: 0.8rem;
-    margin-bottom: var(--shadow-offset);
-    border-radius: var(--radius-main);
-    font-size: 1.25rem;
-    text-transform: uppercase;
-    color: var(--text-default);
-    background-color: transparent;
-    border: var(--border-width) solid transparent;
-    transition: all 120ms ease-out;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.sidebar-link .icon {
-    min-width: 32px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.sidebar-link .text {
-    opacity: 1;
-    transition: opacity 100ms;
-}
-
-.sidebar-link:hover {
-    border-color: var(--color-black);
-    background-color: var(--color-white);
-    transform: translateY(calc(var(--shadow-offset) * -1));
-    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-}
-
-.sidebar-link:active {
-    transform: translateY(var(--shadow-offset));
-    box-shadow: 0 0 0 var(--color-black);
-}
-
-.sidebar-link.is-active {
-    background-color: var(--color-gray);
-    border-color: var(--color-black);
-    box-shadow: 0 var(--shadow-offset) 0 var(--color-black);
-}
-
-.sidebar-divider {
-    margin: 1rem 0;
-    height: var(--border-width);
-    background-color: var(--color-black);
-    border-radius: 2px;
-    transition: all 200ms;
-    flex-shrink: 0;
-}
-
-/* Sidebar collapsed state */
-.pixel-sidebar.is-hidden {
-    width: 80px;
-}
-
-.pixel-sidebar.is-hidden .sidebar-header {
-    justify-content: center;
-    padding: 0.8rem 0;
-}
-
-.pixel-sidebar.is-hidden .sidebar-toggle-icon {
-    transform: rotate(180deg);
-}
-
-.pixel-sidebar.is-hidden .sidebar-brand {
-    display: none;
-}
-
-.pixel-sidebar.is-hidden .sidebar-link {
-    justify-content: center;
-    gap: 0;
-    padding: 0.8rem 0;
-}
-
-.pixel-sidebar.is-hidden .sidebar-link .text {
-    display: none;
-}
-
-.pixel-sidebar.is-hidden .sidebar-divider {
-    margin: 1rem 0.5rem;
-}
 
 /* ============================== MAIN CONTENT AREA ============================== */
 main {
@@ -379,10 +241,8 @@ main h1 {
     background: var(--color-white);
 }
 
-.quick-add {
+.quick-filter {
     display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
 }
 
 /* ============================== TASK LIST ============================== */
@@ -394,62 +254,11 @@ main h1 {
     gap: 8px;
 }
 
-.task-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: var(--spacing-base) 0;
-    border-bottom: 1px dashed var(--color-black);
-}
-
 .task-item span {
     flex: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.badge {
-    margin-left: auto;
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border: 1px solid var(--color-black);
-}
-
-.badge.red {
-    background-color: rgba(239, 68, 68, 0.1);
-    border-color: var(--color-red);
-}
-
-.badge.blue {
-    background-color: rgba(37, 99, 235, 0.1);
-    border-color: var(--color-blue);
-}
-
-/* ============================== QUICK ACCESS GRID ============================== */
-
-.access-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    grid-auto-rows: 1fr;
-    gap: 12px;
-    height: 100%;
-}
-
-.access-item {
-    border: var(--border-width) solid var(--color-black);
-    padding: var(--spacing-base);
-    text-align: center;
-    background: var(--color-gray);
-    cursor: pointer;
-    box-shadow: 0 2px 0 var(--color-black);
-}
-
-.access-item:hover {
-    background: var(--color-white);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--color-black);
-    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
 }
 
 /* ============================== CONTEXTUAL ACTION BAR ============================== */
@@ -960,4 +769,180 @@ textarea.pixel-input {
     font-size: 1.2rem;
     min-width: 24px;
     text-align: center;
+}
+
+/* ============================== BADGE COMPONENT ============================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border: var(--border-width) solid var(--color-black);
+    border-radius: var(--radius-small);
+    box-shadow: 1px 1px 0 var(--color-black);
+    text-transform: uppercase;
+}
+
+.badge.mini {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    box-shadow: none;
+}
+
+.badge.red {
+    background-color: var(--color-red);
+    color: var(--color-white);
+    border-color: color-mix(in srgb, var(--color-red) 70%, black);
+}
+
+.badge.blue {
+    background-color: var(--color-blue);
+    color: var(--color-white);
+    border-color: color-mix(in srgb, var(--color-blue) 70%, black);
+}
+
+.badge.gray {
+    background-color: #888;
+    color: var(--color-white);
+    border-color: #555;
+}
+
+.badge.green {
+    background-color: var(--color-green);
+    color: var(--color-white);
+    border-color: color-mix(in srgb, var(--color-green) 70%, black);
+}
+
+.badge.yellow {
+    background-color: var(--color-yellow);
+    color: var(--color-black);
+    border-color: color-mix(in srgb, var(--color-yellow) 70%, black);
+}
+
+/* ============================== CHECKBOX COMPONENT ============================== */
+
+.pixel-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.pixel-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.pixel-checkbox .checkmark {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    background: var(--color-white);
+    border: var(--border-width) solid var(--color-black);
+    border-radius: var(--radius-small);
+    box-shadow: 2px 2px 0 var(--color-black);
+    transition: all 100ms ease-out;
+}
+
+.pixel-checkbox:hover .checkmark {
+    background: var(--color-gray);
+}
+
+.pixel-checkbox input:checked ~ .checkmark {
+    background: var(--color-green);
+    border-color: color-mix(in srgb, var(--color-green) 70%, black);
+}
+
+.pixel-checkbox input:checked ~ .checkmark::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--color-white);
+}
+
+.pixel-checkbox input:active ~ .checkmark {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--color-black);
+}
+
+/* ============================== ITEM LIST BUILDER (QA/Bug) ============================== */
+
+.item-list-section {
+    border-top: 2px dashed var(--color-black);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.item-input-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-list-mini {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    background: #f9f9f9;
+    border: 1px solid var(--color-black);
+}
+
+.item-list-mini li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.85rem;
+}
+
+.item-list-mini li:last-child {
+    border-bottom: none;
+}
+
+.item-list-mini .item-link {
+    color: var(--color-blue);
+    text-decoration: underline;
+    cursor: pointer;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.item-list-mini .btn-remove-item {
+    background: var(--color-red);
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    border-radius: 2px;
+}
+
+/* ============================== SUB-TASK INDENT (Dashboard) ============================== */
+
+.task-item.level-1 { padding-left: calc(var(--spacing-base) + 1rem); }
+.task-item.level-2 { padding-left: calc(var(--spacing-base) + 2rem); }
+.task-item.level-3 { padding-left: calc(var(--spacing-base) + 3rem); }
+
+.task-item.has-children .task-text::before {
+    content: "▸ ";
+    color: var(--color-muted);
+}
+
+.task-item.has-children.expanded .task-text::before {
+    content: "▾ ";
 }

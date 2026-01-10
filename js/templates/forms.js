@@ -3,12 +3,19 @@
  * Centralized source of truth for all management forms.
  */
 const FormTemplates = {
-    // Task Form
+    // Task Form (Extended with QA, Bug, Sub-tasks)
     task: `
         <form id="task-form" class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
                 <label for="name">Tên công việc</label>
-                <input type="text" id="name" class="pixel-input" placeholder="Nhập tên..." required>
+                <input type="text" id="name" name="name" class="pixel-input" placeholder="Nhập tên..." required>
+            </div>
+            <div class="form-group">
+                <label for="parentId">Task cha (nếu là sub-task)</label>
+                <select id="parentId" name="parentId" class="pixel-input">
+                    <option value="">-- Không có (Task gốc) --</option>
+                    <!-- Options sẽ được inject bởi JS -->
+                </select>
             </div>
             <div class="form-group">
                 <label for="type">Loại</label>
@@ -30,20 +37,43 @@ const FormTemplates = {
             </div>
             <div class="form-group">
                 <label for="startDate">Ngày bắt đầu</label>
-                <input type="date" id="startDate" class="pixel-input">
+                <input type="date" id="startDate" name="startDate" class="pixel-input">
             </div>
             <div class="form-group">
                 <label for="endDate">Ngày kết thúc</label>
-                <input type="date" id="endDate" class="pixel-input">
+                <input type="date" id="endDate" name="endDate" class="pixel-input">
             </div>
             <div class="form-group">
                 <label for="progress">Tiến độ (%)</label>
-                <input type="number" id="progress" class="pixel-input" min="0" max="100" value="0">
+                <input type="number" id="progress" name="progress" class="pixel-input" min="0" max="100" value="0">
             </div>
             <div class="form-group" style="grid-column: span 2;">
                 <label for="notes">Ghi chú</label>
-                <textarea id="notes" class="pixel-input" rows="3"></textarea>
+                <textarea id="notes" class="pixel-input" rows="2"></textarea>
             </div>
+
+            <!-- QA LIST SECTION -->
+            <div class="form-group item-list-section" style="grid-column: span 2;">
+                <label>📝 Danh sách QA (Hỏi đáp với KH)</label>
+                <div class="item-input-row">
+                    <input type="text" id="qaLabel" class="pixel-input" placeholder="Tên QA..." style="flex:1;">
+                    <input type="url" id="qaLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
+                    <button type="button" class="pixel-button green mini" id="btnAddQa">+</button>
+                </div>
+                <ul id="qa-list" class="item-list-mini"></ul>
+            </div>
+
+            <!-- BUG LIST SECTION -->
+            <div class="form-group item-list-section" style="grid-column: span 2;">
+                <label>🐛 Danh sách Bug</label>
+                <div class="item-input-row">
+                    <input type="text" id="bugLabel" class="pixel-input" placeholder="Mô tả bug..." style="flex:1;">
+                    <input type="url" id="bugLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
+                    <button type="button" class="pixel-button red mini" id="btnAddBug">+</button>
+                </div>
+                <ul id="bug-list" class="item-list-mini"></ul>
+            </div>
+
             <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
                 <button type="submit" class="pixel-button blue full-width">LƯU CÔNG VIỆC</button>
             </div>
@@ -55,11 +85,11 @@ const FormTemplates = {
         <form id="link-form" class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
                 <label for="label">Tên hiển thị</label>
-                <input type="text" id="label" class="pixel-input" placeholder="Ví dụ: Project Alpha" required>
+                <input type="text" id="label" name="label" class="pixel-input" placeholder="Ví dụ: Project Alpha" required>
             </div>
             <div class="form-group" style="grid-column: span 2;">
                 <label for="path">Đường dẫn (URL / Folder / File)</label>
-                <input type="text" id="path" class="pixel-input" placeholder="C:\\Projects\\... hoặc https://..." required>
+                <input type="text" id="path" name="path" class="pixel-input" placeholder="C:\\Projects\\... hoặc https://..." required>
             </div>
             <div class="form-group">
                 <label for="type">Loại tài nguyên</label>
@@ -88,19 +118,19 @@ const FormTemplates = {
         <form id="rem-form" class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
                 <label for="eventName">Tên sự kiện / Nhắc nhở</label>
-                <input type="text" id="eventName" class="pixel-input" placeholder="Ví dụ: Họp Sprint, Gửi báo cáo" required>
+                <input type="text" id="eventName" name="eventName" class="pixel-input" placeholder="Ví dụ: Họp Sprint, Gửi báo cáo" required>
             </div>
             <div class="form-group">
                 <label for="date">Ngày diễn ra</label>
-                <input type="date" id="date" class="pixel-input" required>
+                <input type="date" id="date" name="date" class="pixel-input" required>
             </div>
             <div class="form-group">
                 <label for="time">Thời gian</label>
-                <input type="time" id="time" class="pixel-input" required>
+                <input type="time" id="time" name="time" class="pixel-input" required>
             </div>
             <div class="form-group" style="grid-column: span 2;">
                 <label for="link">Đường dẫn liên quan (URL)</label>
-                <input type="url" id="link" class="pixel-input" placeholder="https://...">
+                <input type="url" id="link" name="link" class="pixel-input" placeholder="https://...">
             </div>
             <div class="form-group" style="grid-column: span 2;">
                 <label for="notes">Ghi chú thêm</label>
@@ -117,7 +147,7 @@ const FormTemplates = {
         <form id="auto-form" class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
                 <label for="presetName">Tên Kịch Bản (Preset Name)</label>
-                <input type="text" id="presetName" class="pixel-input" placeholder="Ví dụ: Start Coding Session" required>
+                <input type="text" id="presetName" name="presetName" class="pixel-input" placeholder="Ví dụ: Start Coding Session" required>
             </div>
             <div class="form-group" style="grid-column: span 2;">
                 <label for="presetDesc">Mô tả</label>
