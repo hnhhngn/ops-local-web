@@ -156,6 +156,31 @@ const FormTemplates = {
                 <button type="submit" class="pixel-button red full-width">LƯU KỊCH BẢN</button>
             </div>
         </form>
+    `,
+
+    // Settings Form
+    settings: `
+        <div id="settings-form" class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 0.5rem; border-bottom: 2px solid var(--color-black); padding-bottom: 0.2rem;">CẤU HÌNH HỆ THỐNG</h3>
+            </div>
+            
+            <div class="form-group" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 0.5rem; border: 1px solid #ccc;">
+                <div>
+                    <strong style="display: block;">Tự chạy khi mở máy (Auto Startup)</strong>
+                    <small style="color: #666;">Server sẽ tự động chạy và mở trình duyệt khi bạn đăng nhập Windows.</small>
+                </div>
+                <div class="pixel-switch-container">
+                    <button id="btn-toggle-startup" class="pixel-button mini gray">ĐANG KIỂM TRA...</button>
+                </div>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2; margin-top: 1rem;">
+                <h3 style="margin-bottom: 0.5rem; border-bottom: 2px solid var(--color-black); padding-bottom: 0.2rem;">PHIÊN BẢN & THÔNG TIN</h3>
+                <p style="font-size: 0.9rem;">IJS Ops Dashboard v1.0.0-Core</p>
+                <p style="font-size: 0.8rem; color: #666;">Cổng (Port): 8087</p>
+            </div>
+        </div>
     `
 };
 

@@ -709,6 +709,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* ============================== SETTINGS & SERVER CONTROL ============================== */
+
+  /**
+   * Fetch and handle Auto Startup status
+   */
+  const syncStartupStatus = async (btn) => {
+    try {
+      const res = await fetch("/api/settings/startup");
+      const status = await res.json();
+      updateStartupButton(btn, status.enabled);
+    } catch (err) {
+      console.error("Failed to sync startup status:", err);
+      btn.innerText = "LỖI KẾT NỐI";
+      btn.className = "pixel-button mini red";
+    }
+  };
+
+  const updateStartupButton = (btn, isEnabled) => {
+    btn.innerText = isEnabled ? "ĐANG BẬT (ON)" : "ĐANG TẮT (OFF)";
+    btn.className = `pixel-button mini ${isEnabled ? "green" : "gray"}`;
+    btn.dataset.enabled = isEnabled;
+  };
+
+  /**
+   * System Settings Trigger
+   */
+  window.openSettingsModal = () => {
+    window.modalManager.open('settings', 'CÀI ĐẶT HỆ THỐNG', null, (modalBody) => {
+      const toggleBtn = modalBody.querySelector("#btn-toggle-startup");
+
+      // Initial state fetch
+      syncStartupStatus(toggleBtn);
+
+      // Handle Toggle Click
+      toggleBtn.onclick = async () => {
+        const currentlyEnabled = toggleBtn.dataset.enabled === "true";
+        toggleBtn.innerText = "ĐANG XỬ LÝ...";
+        toggleBtn.className = "pixel-button mini gray";
+
+        try {
+          const res = await fetch("/api/settings/startup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ enabled: !currentlyEnabled })
+          });
+          const result = await res.json();
+          if (result.ok) {
+            updateStartupButton(toggleBtn, result.enabled);
+          } else {
+            alert("Lỗi: " + result.error);
+            syncStartupStatus(toggleBtn);
+          }
+        } catch (err) {
+          alert("Lỗi kết nối server.");
+          syncStartupStatus(toggleBtn);
+        }
+      };
+    });
+  };
+
   // Initial load
   loadDashboardAutomation();
 });

@@ -29,6 +29,37 @@ class CommandPalette {
             ],
             commands: [
 
+                {
+                    label: "System: Restart Server",
+                    action: () => {
+                        if (confirm("Khởi động lại Server? Trình duyệt sẽ được mở lại.")) {
+                            fetch("/api/launch", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ path: "bin/restart.bat" })
+                            });
+                        }
+                    }
+                },
+                {
+                    label: "System: Stop Server",
+                    action: () => {
+                        if (confirm("Dừng Server ngay lập tức?")) {
+                            fetch("/api/launch", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ path: "bin/stop.bat" })
+                            });
+                        }
+                    }
+                },
+                {
+                    label: "System: Settings",
+                    action: () => {
+                        if (window.openSettingsModal) window.openSettingsModal();
+                        else alert("Vui lòng truy cập Dashboard để mở Cài đặt.");
+                    }
+                },
                 // Actions: Tasks
                 {
                     label: "Tasks: Create New",

@@ -331,6 +331,50 @@ function Handle-ApiRequest($Request, $Response) {
             break
         }
 
+        "POST /api/settings/startup" {
+            $Payload = Read-JsonBody $Request
+            $Enabled = $Payload.enabled
+
+            $BinDir = Join-Path $BaseDir "bin"
+            $TargetFile = Join-Path $BinDir "start.bat"
+            $ShortcutName = "OpsLocalServer.lnk"
+            $StartupDir = [Environment]::GetFolderPath("Startup")
+            $ShortcutPath = Join-Path $StartupDir $ShortcutName
+
+            if ($Enabled) {
+                try {
+                    if (-not (Test-Path $TargetFile)) {
+                        return Write-JsonResponse $Response 400 @{ ok = $false; error = "Target file start.bat not found" }
+                    }
+                    $WScriptShell = New-Object -ComObject WScript.Shell
+                    $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
+                    $Shortcut.TargetPath = $TargetFile
+                    $Shortcut.WorkingDirectory = $BinDir
+                    $Shortcut.Save()
+                    Write-JsonResponse $Response 200 @{ ok = $true; enabled = $true }
+                }
+                catch {
+                    Write-JsonResponse $Response 500 @{ ok = $false; error = $_.Exception.Message }
+                }
+            }
+            else {
+                if (Test-Path $ShortcutPath) {
+                    Remove-Item $ShortcutPath -Force
+                }
+                Write-JsonResponse $Response 200 @{ ok = $true; enabled = $false }
+            }
+            break
+        }
+
+        "GET /api/settings/startup" {
+            $ShortcutName = "OpsLocalServer.lnk"
+            $StartupDir = [Environment]::GetFolderPath("Startup")
+            $ShortcutPath = Join-Path $StartupDir $ShortcutName
+            $exists = Test-Path $ShortcutPath
+            Write-JsonResponse $Response 200 @{ ok = $true; enabled = $exists }
+            break
+        }
+
         "GET /api/health" {
             Write-JsonResponse $Response 200 @{
                 ok   = $true

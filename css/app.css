@@ -51,6 +51,12 @@
     --btn-shadow: color-mix(in srgb, var(--color-yellow) 65%, transparent);
 }
 
+.pixel-button.gray {
+    --btn-bg: #888;
+    --btn-text: var(--color-white);
+    --btn-shadow: rgba(0,0,0,0.2);
+}
+
 .full-width {
     width: 100%;
 }
