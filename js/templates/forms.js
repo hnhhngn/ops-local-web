@@ -10,13 +10,15 @@ const FormTemplates = {
                 <label for="name">Tên công việc</label>
                 <input type="text" id="name" name="name" class="pixel-input" placeholder="Nhập tên..." required>
             </div>
-            <div class="form-group">
+            
+            <div class="form-group" style="grid-column: span 2;">
                 <label for="parentId">Task cha (nếu là sub-task)</label>
                 <select id="parentId" name="parentId" class="pixel-input">
                     <option value="">-- Không có (Task gốc) --</option>
                     <!-- Options sẽ được inject bởi JS -->
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="type">Loại</label>
                 <select id="type" class="pixel-input">
@@ -27,6 +29,7 @@ const FormTemplates = {
                     <option value="custom">Tùy chỉnh</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="priority">Độ ưu tiên</label>
                 <select id="priority" class="pixel-input">
@@ -35,18 +38,22 @@ const FormTemplates = {
                     <option value="high">Cao</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="startDate">Ngày bắt đầu</label>
                 <input type="date" id="startDate" name="startDate" class="pixel-input">
             </div>
+
             <div class="form-group">
                 <label for="endDate">Ngày kết thúc</label>
                 <input type="date" id="endDate" name="endDate" class="pixel-input">
             </div>
-            <div class="form-group">
+
+            <div class="form-group" style="grid-column: span 2;">
                 <label for="progress">Tiến độ (%)</label>
                 <input type="number" id="progress" name="progress" class="pixel-input" min="0" max="100" value="0">
             </div>
+
             <div class="form-group" style="grid-column: span 2;">
                 <label for="notes">Ghi chú</label>
                 <textarea id="notes" class="pixel-input" rows="2"></textarea>
@@ -58,7 +65,7 @@ const FormTemplates = {
                 <div class="item-input-row">
                     <input type="text" id="qaLabel" class="pixel-input" placeholder="Tên QA..." style="flex:1;">
                     <input type="url" id="qaLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
-                    <button type="button" class="pixel-button green mini" id="btnAddQa">+</button>
+                    <button type="button" class="pixel-button green mini" id="btnAddQa" style="min-width: 40px;">+</button>
                 </div>
                 <ul id="qa-list" class="item-list-mini"></ul>
             </div>
@@ -69,7 +76,7 @@ const FormTemplates = {
                 <div class="item-input-row">
                     <input type="text" id="bugLabel" class="pixel-input" placeholder="Mô tả bug..." style="flex:1;">
                     <input type="url" id="bugLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
-                    <button type="button" class="pixel-button red mini" id="btnAddBug">+</button>
+                    <button type="button" class="pixel-button red mini" id="btnAddBug" style="min-width: 40px;">+</button>
                 </div>
                 <ul id="bug-list" class="item-list-mini"></ul>
             </div>

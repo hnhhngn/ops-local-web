@@ -239,8 +239,28 @@ function populateParentDropdown(modalBody, excludeId = null) {
   const select = modalBody.querySelector("#parentId");
   if (!select) return;
 
+  // Helper: Get all descendants IDs of a task (with cycle protection)
+  const getDescendantIds = (rootId) => {
+    const ids = new Set();
+    const find = (pid) => {
+      const children = allTasks.filter(t => t.parentId === pid);
+      children.forEach(child => {
+        if (!ids.has(child.id)) {
+          ids.add(child.id);
+          find(child.id);
+        }
+      });
+    };
+    find(rootId);
+    return ids;
+  };
+
+  const descendants = excludeId ? getDescendantIds(excludeId) : new Set();
+
   allTasks.forEach(t => {
     if (t.id === excludeId) return; // Avoid self-parenting
+    if (descendants.has(t.id)) return; // Avoid cycle (can't be your own grandfather)
+
     const opt = document.createElement("option");
     opt.value = t.id;
     opt.textContent = t.name;

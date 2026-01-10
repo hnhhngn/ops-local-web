@@ -1,4 +1,4 @@
-/* ============================== DASHBOARD GRID (OpsGrid) ============================== */
+﻿/* ============================== DASHBOARD GRID (OpsGrid) ============================== */
 
 /**
  * Manages dashboard widget grid using OpsGrid library
@@ -103,39 +103,45 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Render tasks to dashboard widget (All incomplete)
    */
+  /**
+   * Render tasks to dashboard widget (All incomplete)
+   */
   const renderDashboardTasks = (tasks) => {
     if (!dashboardTaskList) return;
     dashboardTaskList.innerHTML = "";
 
-    // Filter: Only incomplete + match filter text
-    const filterText = currentFilterText.toLowerCase();
-    const incompleteTasks = tasks.filter(task => {
-      const isIncomplete = (task.progress || 0) < 100;
-      const matchesFilter = !filterText || (task.name && task.name.toLowerCase().includes(filterText));
-      return isIncomplete && matchesFilter;
-    });
-
-    // Build parent-child map for tree rendering
+    // Build parent-child map for tree rendering FIRST
     const taskMap = {};
     tasks.forEach(t => taskMap[t.id] = t);
 
-    // Helper: Get level of task (0 = root, 1 = child of root, etc.)
-    const getTaskLevel = (task, allTasks, maxDepth = 4) => {
-      let level = 0;
-      let current = task;
-      while (current.parentId && level < maxDepth) {
-        const parent = allTasks.find(t => t.id === current.parentId);
-        if (!parent) break;
-        current = parent;
-        level++;
-      }
-      return level;
-    };
+    // Filter: Only incomplete + match filter text (handling hierarchy)
+    const filterText = currentFilterText.toLowerCase();
 
-    // Helper: Check if task has children
-    const hasChildren = (taskId, allTasks) => {
-      return allTasks.some(t => t.parentId === taskId);
-    };
+    // 1. Get all incomplete tasks first
+    const allIncomplete = tasks.filter(t => (t.progress || 0) < 100);
+
+    // 2. Determine which IDs to keep
+    const keepIds = new Set();
+    if (!filterText) {
+      allIncomplete.forEach(t => keepIds.add(t.id));
+    } else {
+      allIncomplete.forEach(task => {
+        const name = task.name ? task.name.toLowerCase() : "";
+        if (name.includes(filterText)) {
+          keepIds.add(task.id);
+          // Auto-include incomplete PARENTS to preserve context where possible
+          let curr = task;
+          while (curr.parentId && taskMap[curr.parentId]) {
+            curr = taskMap[curr.parentId];
+            if ((curr.progress || 0) < 100) {
+              keepIds.add(curr.id);
+            }
+          }
+        }
+      });
+    }
+
+    const incompleteTasks = allIncomplete.filter(t => keepIds.has(t.id));
 
     // Sort: Priority (High->Low) -> Start Date (ASC) -> End Date (ASC)
     const sortedTasks = [...incompleteTasks].sort((a, b) => {
@@ -165,98 +171,119 @@ document.addEventListener("DOMContentLoaded", () => {
       return 0;
     });
 
-    // Render tasks with hierarchy: root tasks first, then insert children after parents
-    const renderedIds = new Set();
-    const renderTaskItem = (task, level = 0) => {
-      if (renderedIds.has(task.id)) return;
-      renderedIds.add(task.id);
+    // Re-map sorted for quick lookup
+    const sortedMap = {};
+    sortedTasks.forEach(t => sortedMap[t.id] = t);
 
+    // ---------------------------------------------------------
+    // Recursive Tree Renderer
+    // ---------------------------------------------------------
+    // ---------------------------------------------------------
+    const createNodeFn = (task, level = 0) => {
       const li = document.createElement("li");
-      const levelClass = level > 0 ? `level-${Math.min(level, 3)}` : "";
-      const hasChildrenClass = hasChildren(task.id, tasks) ? "has-children" : "";
-      li.className = `task-item multi-line ${levelClass} ${hasChildrenClass}`.trim();
+      li.className = "task-item-new"; // New generic wrapper
+      if (level === 0) li.classList.add("task-root-group");
 
+      // Find direct children present in the sorted list
+      const children = sortedTasks.filter(t => t.parentId === task.id);
+      const hasKids = children.length > 0;
+
+      // --- Row Content ---
+      const row = document.createElement("div");
+      row.className = "task-row-container";
+
+      // Metadata
       const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "gray");
       const priorityLabel = task.priority === "high" ? "High" : (task.priority === "medium" ? "Med" : "Low");
+      const typeIcons = { code: "💻", test: "🧪", design: "🎨", confirm: "✅", custom: "⚙️" };
+      const icon = typeIcons[task.type] || "📋";
+      const dateText = (task.startDate || task.endDate) ? `${task.startDate || '..'}➜${task.endDate || '..'}` : "No date";
+      const progress = task.progress || 0;
 
-      // Type icon/label
-      const typeIcons = {
-        code: "💻",
-        test: "🧪",
-        design: "🎨",
-        confirm: "✅",
-        custom: "⚙️"
-      };
-      const icon = typeIcons[task.type] || "📝";
-      const dateText = (task.startDate || task.endDate)
-        ? `${task.startDate || '...'} ➔ ${task.endDate || '...'}`
-        : "No date set";
-
-      li.innerHTML = `
-        <div class="task-main-row">
-            <label class="pixel-checkbox">
-                <input type="checkbox" ${task.progress === 100 ? "checked" : ""}>
-                <span class="checkmark"></span>
-            </label>
-            <div class="task-text" title="${task.name}">${task.name}</div>
-            <div class="task-meta">
-                ${(task.qas || []).length > 0 ? `<span class="badge gray mini">📝</span>` : ""}
-                ${(task.bugs || []).length > 0 ? `<span class="badge red mini">🐛</span>` : ""}
-                <span class="badge ${priorityClass} mini">${priorityLabel}</span>
-                <button class="btn-edit-mini" title="Edit Task">✎</button>
+      row.innerHTML = `
+            <div class="task-header-row" style="padding-left: ${level * 20}px">
+                ${hasKids ? `<span class="toggle-btn" title="Collapse/Expand">-</span>` : `<span style="width:28px"></span>`}
+                <label class="pixel-checkbox" style="margin-right: 8px">
+                    <input type="checkbox" ${progress === 100 ? "checked" : ""}>
+                    <span class="checkmark"></span>
+                </label>
+                <div class="task-text" title="${task.name}" style="font-weight:${hasKids ? 'bold' : 'normal'}">
+                    ${task.name}
+                </div>
+                 <div class="task-meta">
+                    ${task.notes ? `<span class="badge gray mini" title="Has Notes">📝</span>` : ""}
+                    ${(task.qas || []).length > 0 ? `<span class="badge gray mini">❓</span>` : ""}
+                    ${(task.bugs || []).length > 0 ? `<span class="badge red mini">🐛</span>` : ""}
+                    <span class="badge ${priorityClass} mini">${priorityLabel}</span>
+                    <button class="btn-edit-mini" title="Edit Task">✎</button>
+                </div>
             </div>
-        </div>
-        <div class="task-sub-row">
-            <span class="task-type-tag">${icon} ${task.type || 'task'}</span>
-            <span class="task-date-tag">📅 ${dateText}</span>
-        </div>
-      `;
+            
+            <div class="task-sub-row">
+                 <span class="task-type-tag" style="width:80px; text-align:center; margin-right:10px; display:inline-block; flex-shrink:0;">${icon} ${task.type || 'task'}</span>
+                 <span style="width:140px; text-align:right; font-size:0.75rem; margin-right:10px; color:#666; display:inline-block; flex-shrink:0;">${dateText}</span>
+                 <div style="flex:1">
+                    <div class="pixel-progress-container">
+                        <div class="pixel-progress-bar" style="width: ${progress}%"></div>
+                        <span class="pixel-progress-text">${progress}%</span>
+                    </div>
+                 </div>
+            </div>
+        `;
 
-      // Checkbox Logic
-      const checkbox = li.querySelector("input[type='checkbox']");
+      // Toggle Logic
+      if (hasKids) {
+        const toggle = row.querySelector(".toggle-btn");
+        toggle.onclick = (e) => {
+          e.stopPropagation();
+          const ul = li.querySelector(".nested-task-list");
+          if (ul) {
+            ul.classList.toggle("hidden");
+            toggle.innerText = ul.classList.contains("hidden") ? "+" : "-";
+          }
+        };
+      }
+
+      // Checkbox Logic (Optimistic UI)
+      const checkbox = row.querySelector("input[type='checkbox']");
       checkbox.addEventListener("change", async (e) => {
         const newProgress = e.target.checked ? 100 : 0;
-        // Optimistic update
-        task.progress = newProgress;
+        task.progress = newProgress; // local update
+
+        // Visual update immediately
+        row.querySelector(".pixel-progress-bar").style.width = newProgress + "%";
+        row.querySelector(".pixel-progress-text").innerText = newProgress + "%";
 
         try {
-          // Re-fetch all to ensure sync (simplified)
           const res = await fetch("/api/data?file=tasks.json");
           const all = await res.json();
           const target = all.find(t => t.id === task.id);
           if (target) target.progress = newProgress;
 
-          // Auto-complete parent: If this task is completed and has a parent,
-          // check if all siblings are also completed
+          // Simple Auto-Complete Parent Logic
           if (newProgress === 100 && task.parentId) {
             const parent = all.find(t => t.id === task.parentId);
             if (parent) {
               const siblings = all.filter(t => t.parentId === task.parentId);
-              const allSiblingsComplete = siblings.every(t => (t.progress || 0) >= 100);
-              if (allSiblingsComplete) {
-                parent.progress = 100;
-                console.log(`Auto-completed parent task: ${parent.name}`);
-              }
+              if (siblings.every(s => (s.progress || 0) >= 100)) parent.progress = 100;
             }
           }
 
           await fetch("/api/data?file=tasks.json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(all)
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(all)
           });
 
-          // Re-render dashboard to respect filtering or updated status
+          // Reload if completed
           if (newProgress === 100) {
             li.style.opacity = "0.5";
-            li.style.textDecoration = "line-through";
             setTimeout(() => loadDashboardTasks(), 500);
           }
         } catch (err) { console.error(err); }
       });
 
-      // Edit Button Logic
-      li.querySelector(".btn-edit-mini").addEventListener("click", (e) => {
+      // Edit Logic
+      row.querySelector(".task-text").addEventListener("click", () => row.querySelector(".btn-edit-mini").click());
+      row.querySelector(".btn-edit-mini").addEventListener("click", (e) => {
         e.stopPropagation();
         window.currentQas = [...(task.qas || [])];
         window.currentBugs = [...(task.bugs || [])];
@@ -295,19 +322,62 @@ document.addEventListener("DOMContentLoaded", () => {
         },
           // onRender: Pre-fill
           async (modalBody) => {
-            // Populate parent dropdown
-            const res = await fetch("/api/data?file=tasks.json");
-            const allTasks = await res.json();
-            const parentSelect = modalBody.querySelector("#parentId");
-            if (parentSelect && allTasks) {
-              allTasks.forEach(t => {
-                if (t.id === task.id) return;
-                const opt = document.createElement("option");
-                opt.value = t.id;
-                opt.textContent = t.name;
-                parentSelect.appendChild(opt);
-              });
+            if (typeof setupItemBuildersInner !== 'undefined') {
+              setupItemBuildersInner(modalBody);
+              renderItemListsInner(modalBody);
             }
+
+            setTimeout(() => {
+              const nameInput = modalBody.querySelector("#name");
+              if (nameInput) nameInput.focus();
+            }, 100);
+
+            try {
+              const res = await fetch("/api/data?file=tasks.json");
+              const allTasks = await res.json();
+              const parentSelect = modalBody.querySelector("#parentId");
+              const typeSelect = modalBody.querySelector("#type");
+
+              const getDescendantIds = (rootId) => {
+                const ids = new Set();
+                const find = (pid) => {
+                  const children = allTasks.filter(t => t.parentId === pid);
+                  children.forEach(child => {
+                    if (!ids.has(child.id)) {
+                      ids.add(child.id);
+                      find(child.id);
+                    }
+                  });
+                };
+                find(rootId);
+                return ids;
+              };
+
+              if (parentSelect && allTasks) {
+                const descendants = getDescendantIds(task.id);
+
+                allTasks.forEach(t => {
+                  if (t.id === task.id || descendants.has(t.id)) return;
+                  const opt = document.createElement("option");
+                  opt.value = t.id;
+                  opt.textContent = t.name;
+                  parentSelect.appendChild(opt);
+                });
+
+                parentSelect.addEventListener("change", () => {
+                  const pid = parentSelect.value;
+                  if (pid) {
+                    const parent = allTasks.find(t => t.id === pid);
+                    if (parent && typeSelect) {
+                      typeSelect.value = parent.type;
+                      typeSelect.disabled = true;
+                    }
+                  } else {
+                    if (typeSelect) typeSelect.disabled = false;
+                  }
+                });
+              }
+            } catch (err) { console.error("Error populating parents:", err); }
 
             modalBody.querySelector("#name").value = task.name;
             modalBody.querySelector("#parentId").value = task.parentId || "";
@@ -318,30 +388,48 @@ document.addEventListener("DOMContentLoaded", () => {
             modalBody.querySelector("#progress").value = task.progress || 0;
             modalBody.querySelector("#notes").value = task.notes || "";
 
-            // Setup builders and render current items
-            setupItemBuildersInner(modalBody);
-            renderItemListsInner(modalBody);
-
             const btn = modalBody.querySelector("button[type='submit']");
             if (btn) btn.innerText = "LƯU THAY ĐỔI";
           });
       });
 
-      // Click text to open edit as well
-      li.querySelector(".task-text").addEventListener("click", () => {
-        li.querySelector(".btn-edit-mini").click();
-      });
+      li.appendChild(row);
 
-      dashboardTaskList.appendChild(li);
+      // --- Vertical Guide Line ---
+      if (hasKids) {
+        const vLine = document.createElement("div");
+        vLine.className = "tree-v-line";
+        // Calculate left based on level: (level*20) + half of toggle-btn (28px) - border adjustment
+        // Toggle is 28px wide or starts with 28px empty span. Center is at 14px.
+        vLine.style.left = `${(level * 20) + 14}px`;
+        li.appendChild(vLine);
+      }
+      if (hasKids) {
+        const ul = document.createElement("ul");
+        ul.className = "nested-task-list";
+        ul.style.paddingLeft = "0"; // Disable default indent of UL
+        ul.style.marginLeft = "0";
+        children.forEach(child => {
+          ul.appendChild(createNodeFn(child, level + 1));
+        });
+        li.appendChild(ul);
+      }
 
-      // Recursively render children (sub-tasks)
-      const children = sortedTasks.filter(t => t.parentId === task.id);
-      children.forEach(child => renderTaskItem(child, level + 1));
+      return li;
     };
 
-    // Render root tasks first (those without parentId, or whose parent is not in current list)
-    const rootTasks = sortedTasks.filter(t => !t.parentId || !taskMap[t.parentId]);
-    rootTasks.forEach(task => renderTaskItem(task, 0));
+    // 3. Render Roots
+    // Roots are tasks in 'sortedTasks' whose parent is NOT in 'sortedTasks'
+    const sortedIds = new Set(sortedTasks.map(t => t.id));
+    const rootTasks = sortedTasks.filter(t => !t.parentId || !sortedIds.has(t.parentId));
+
+    // Fallback if filtering hid parents but we still want to see children rooted at current scope
+    if (rootTasks.length === 0 && sortedTasks.length > 0) {
+      // Just render all top-level matched
+      sortedTasks.forEach(t => dashboardTaskList.appendChild(createNodeFn(t, 0)));
+    } else {
+      rootTasks.forEach(task => dashboardTaskList.appendChild(createNodeFn(task, 0)));
+    }
 
     if (incompleteTasks.length === 0) {
       const msg = currentFilterText
@@ -362,11 +450,18 @@ document.addEventListener("DOMContentLoaded", () => {
     window.modalManager.open('task', 'THÊM CÔNG VIỆC MỚI', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
+      const selectedParentId = document.getElementById("parentId").value || null;
+
+      // Determine type based on parent if selected, otherwise user selection
+      // Note: We'll trust the disabled state or user selection here, 
+      // but strict enforcement could happen server-side
+      const selectedType = document.getElementById("type").value;
+
       const task = {
         id: Date.now().toString(),
         name: formData.get("name"),
-        parentId: document.getElementById("parentId").value || null,
-        type: document.getElementById("type").value,
+        parentId: selectedParentId,
+        type: selectedType,
         priority: document.getElementById("priority").value,
         startDate: document.getElementById("startDate").value,
         endDate: document.getElementById("endDate").value,
@@ -389,23 +484,51 @@ document.addEventListener("DOMContentLoaded", () => {
         loadDashboardTasks();
       } catch (err) { console.error(err); }
     }, async (modalBody) => {
-      // Populate parent task dropdown
+      // 1. Focus Name
+      setTimeout(() => {
+        const nameInput = modalBody.querySelector("#name");
+        if (nameInput) nameInput.focus();
+      }, 100);
+
+      // 2. Populate Parent Dropdown & Type Logic
+      let allTasks = [];
       try {
         const res = await fetch("/api/data?file=tasks.json");
-        const allTasks = await res.json();
-        const parentSelect = modalBody.querySelector("#parentId");
-        if (parentSelect && allTasks) {
-          // Only show tasks with level < 3 as potential parents (max 4 levels)
-          allTasks.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t.id;
-            opt.textContent = t.name;
-            parentSelect.appendChild(opt);
-          });
-        }
+        allTasks = await res.json();
       } catch (err) { console.error(err); }
 
-      // QA Add Button
+      const parentSelect = modalBody.querySelector("#parentId");
+      const typeSelect = modalBody.querySelector("#type");
+
+      if (parentSelect && allTasks) {
+        // For new task, no cycle risk with existing tasks, but we filter max depth
+        allTasks.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = t.name;
+          parentSelect.appendChild(opt);
+        });
+
+        // Sync Type on Parent Change
+        parentSelect.addEventListener("change", () => {
+          const pid = parentSelect.value;
+          if (pid) {
+            const parent = allTasks.find(t => t.id === pid);
+            if (parent && typeSelect) {
+              typeSelect.value = parent.type;
+              typeSelect.disabled = true; // Enforce same type
+              // Add hidden input to submit the value processing if disabled inputs aren't sent? 
+              // Actually, getting value from disabled select usually works in DOM, but FormData might miss it.
+              // We'll handle 'disabled' carefully.
+              // Better: Just set it and let user see it.
+            }
+          } else {
+            if (typeSelect) typeSelect.disabled = false;
+          }
+        });
+      }
+
+      // 3. QA & Bug Buttons (Re-implement to ensure binding)
       const btnAddQa = modalBody.querySelector("#btnAddQa");
       if (btnAddQa) {
         btnAddQa.onclick = () => {
@@ -423,7 +546,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       }
 
-      // Bug Add Button
       const btnAddBug = modalBody.querySelector("#btnAddBug");
       if (btnAddBug) {
         btnAddBug.onclick = () => {
@@ -607,9 +729,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const icon = iconMap[link.type] || '🔗';
 
       item.innerHTML = `
-        <span class="access-icon">${icon}</span>
-        <span class="access-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${link.label}</span>
-      `;
+  <span class="access-icon">${icon}</span>
+    <span class="access-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${link.label}</span>
+`;
       item.title = `${link.label} (${link.path})`;
       item.setAttribute("data-path", link.path);
 
@@ -623,10 +745,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (links.length === 0) {
       dashboardAccessGrid.innerHTML = `
-        <div class="access-item" style="justify-content:center; border-style:dashed; opacity:0.6;" onclick="location.href='pages/links.html'">
-            <span>+ Add Link</span>
+  <div class="access-item" style="justify-content:center; border-style:dashed; opacity:0.6;" onclick="location.href='pages/links.html'">
+    <span>+ Add Link</span>
         </div>
-      `;
+  `;
     }
   };
 
@@ -819,7 +941,7 @@ document.addEventListener("DOMContentLoaded", () => {
       li.style.cursor = "pointer";
       li.style.fontWeight = "bold";
 
-      li.innerHTML = `🚀 ${pset.name}`;
+      li.innerHTML = `🚀 ${pset.name} `;
 
       li.onclick = async () => {
         if (!confirm(`Chạy kịch bản: ${pset.name}?`)) return;
@@ -943,12 +1065,12 @@ document.addEventListener("DOMContentLoaded", () => {
       items.forEach((item, idx) => {
         const li = document.createElement("li");
         li.innerHTML = `
-          <span>${item.label}</span>
-          <div>
-            ${item.link ? `<a class="item-link" href="${item.link}" target="_blank">🔗</a>` : ""}
-            <button type="button" class="btn-remove-item" onclick="window.removeItemDashboard('${listId}', ${idx})">×</button>
-          </div>
-        `;
+  <span>${item.label}</span>
+    <div>
+      ${item.link ? `<a class="item-link" href="${item.link}" target="_blank">🔗</a>` : ""}
+      <button type="button" class="btn-remove-item" onclick="window.removeItemDashboard('${listId}', ${idx})">×</button>
+    </div>
+`;
         list.appendChild(li);
       });
     };
