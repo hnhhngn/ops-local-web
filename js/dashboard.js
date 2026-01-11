@@ -473,7 +473,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const res = await fetch("/api/data?file=tasks.json");
-        const all = await res.json();
+        const data = await res.json();
+        const all = Array.isArray(data) ? data : (data ? [data] : []);
         all.push(task);
         await fetch("/api/data?file=tasks.json", {
           method: "POST",
@@ -578,7 +579,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       try {
         const res = await fetch("/api/data?file=links.json");
-        const all = await res.json();
+        const data = await res.json();
+        const all = Array.isArray(data) ? data : (data ? [data] : []);
         all.push(link);
         await fetch("/api/data?file=links.json", {
           method: "POST",
@@ -600,12 +602,14 @@ document.addEventListener("DOMContentLoaded", () => {
         eventName: formData.get("eventName"),
         date: formData.get("date"),
         time: formData.get("time"),
+        repeat: formData.get("repeat") || "none",
         link: formData.get("link"),
         notes: formData.get("notes")
       };
       try {
         const res = await fetch("/api/data?file=reminders.json");
-        const all = await res.json();
+        const data = await res.json();
+        const all = Array.isArray(data) ? data : (data ? [data] : []);
         all.push(rem);
         await fetch("/api/data?file=reminders.json", {
           method: "POST",
@@ -631,7 +635,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       try {
         const res = await fetch("/api/data?file=automation.json");
-        const all = await res.json();
+        const data = await res.json();
+        const all = Array.isArray(data) ? data : (data ? [data] : []);
         all.push(preset);
         await fetch("/api/data?file=automation.json", {
           method: "POST",
@@ -862,7 +867,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /**
-   * Render Reminders
+   * Render Reminders with Recurrence Support
    */
   const renderDashboardReminders = (reminders) => {
     if (!dashboardRemindersList) return;
@@ -871,9 +876,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
 
-    const sorted = reminders
-      .filter(r => r.date >= todayStr)
-      .sort((a, b) => (a.date + " " + a.time).localeCompare(b.date + " " + b.time))
+    // Calculate effective date for each reminder
+    const processed = reminders.map(r => {
+      let nextDate = r.date;
+
+      if (r.repeat && r.repeat !== 'none' && r.date < todayStr) {
+        const baseDate = new Date(r.date);
+        const today = new Date(todayStr);
+
+        if (r.repeat === 'daily') {
+          nextDate = todayStr;
+        } else if (r.repeat === 'weekly') {
+          const diff = today - baseDate;
+          const weeksToAdd = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+          baseDate.setDate(baseDate.getDate() + (weeksToAdd * 7));
+          if (baseDate.toISOString().split("T")[0] < todayStr) {
+            baseDate.setDate(baseDate.getDate() + 7);
+          }
+          nextDate = baseDate.toISOString().split("T")[0];
+        } else if (r.repeat === 'monthly') {
+          const yearDiff = today.getFullYear() - baseDate.getFullYear();
+          const monthDiff = today.getMonth() - baseDate.getMonth();
+          baseDate.setMonth(baseDate.getMonth() + (yearDiff * 12 + monthDiff));
+          if (baseDate.toISOString().split("T")[0] < todayStr) {
+            baseDate.setMonth(baseDate.getMonth() + 1);
+          }
+          nextDate = baseDate.toISOString().split("T")[0];
+        }
+      }
+
+      return { ...r, nextDate };
+    });
+
+    const sorted = processed
+      .filter(r => r.nextDate >= todayStr)
+      .sort((a, b) => (a.nextDate + " " + a.time).localeCompare(b.nextDate + " " + b.time))
       .slice(0, 5);
 
     sorted.forEach((rem) => {
@@ -881,10 +918,11 @@ document.addEventListener("DOMContentLoaded", () => {
       li.className = "task-item";
       li.style.cursor = "pointer";
 
-      const isToday = rem.date === todayStr;
-      const dateDisplay = isToday ? "Hôm nay" : rem.date.split("-").slice(1).join("/");
+      const isToday = rem.nextDate === todayStr;
+      const repeatIcon = rem.repeat && rem.repeat !== 'none' ? '🔄 ' : '🔔 ';
+      const dateDisplay = isToday ? "Hôm nay" : rem.nextDate.split("-").slice(1).join("/");
 
-      li.innerHTML = `<span>🔔 ${dateDisplay} ${rem.time} - ${rem.eventName}</span>`;
+      li.innerHTML = `<span>${repeatIcon}${dateDisplay} ${rem.time} - ${rem.eventName}</span>`;
 
       li.onclick = () => {
         if (rem.link) {

@@ -7,7 +7,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: var(--radius-main);
-    font-size: 1.5rem;
+    font-size: var(--text-lg);
     text-transform: uppercase;
     background-color: var(--btn-bg);
     color: var(--btn-text);
@@ -23,7 +23,7 @@
 
 .pixel-button.mini {
     padding: 4px var(--spacing-base);
-    font-size: 0.9rem;
+    font-size: var(--text-xs);
     border-radius: var(--radius-small);
 }
 
@@ -71,7 +71,7 @@
 }
 
 .dashboard-header h1 {
-    font-size: 2.5rem;
+    font-size: var(--text-3xl);
     color: var(--color-black);
     text-shadow: 2px 2px 0 var(--color-white);
 }
@@ -185,12 +185,12 @@ main h1 {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    z-index: 1;
+    z-index: var(--z-elevate);
     margin: 3px;
 }
 
 .pixel-widget:hover {
-    z-index: 10;
+    z-index: 10; /* Local hover elevation */
 }
 
 .widget-header {
@@ -301,7 +301,7 @@ main h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 5000;
+    z-index: var(--z-fixed);
     transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
@@ -323,7 +323,7 @@ main h1 {
 
 .bar-message {
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: var(--text-xs);
     color: var(--color-black);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -365,7 +365,7 @@ main h1 {
     justify-content: center;
     border: 1px dashed rgba(0, 0, 0, 0.3);
     cursor: grab;
-    z-index: 10;
+    z-index: 10; /* Internal component layer */
     font-size: 18px;
     color: var(--color-muted);
     pointer-events: auto !important;
@@ -388,7 +388,7 @@ main h1 {
     opacity: 0.5;
     animation: none;
     cursor: grabbing;
-    z-index: 100;
+    z-index: var(--z-dropdown);
 }
 
 /* ============================== GHOST PREVIEW ============================== */
@@ -397,7 +397,7 @@ main h1 {
     border: 2px dashed rgba(0, 0, 0, 0.3);
     border-radius: var(--radius-small);
     pointer-events: none;
-    z-index: 1;
+    z-index: var(--z-elevate);
     display: none;
     transition: background-color 60ms ease-out, border-color 60ms ease-out;
 }
@@ -420,7 +420,7 @@ main h1 {
 .resize-handle {
     position: absolute;
     background: transparent;
-    z-index: 20;
+    z-index: 20; /* Handle layer */
     display: none;
     transition: background 120ms;
 }
@@ -482,7 +482,7 @@ main h1 {
     bottom: 0;
     background: rgba(0, 0, 0, 0.75);
     /* backdrop-filter removed for performance */
-    z-index: 9000;
+    z-index: var(--z-modal-backdrop);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -526,7 +526,7 @@ main h1 {
 
 .pixel-modal-header h2 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: var(--text-lg);
     text-transform: uppercase;
 }
 
@@ -583,7 +583,7 @@ main h1 {
 .form-group label {
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 0.9rem;
+    font-size: var(--text-xs);
 }
 
 /* Generic List Container (replaces .task-list-container, etc.) */
@@ -649,7 +649,7 @@ main h1 {
 .management-table th {
     background: var(--color-gray);
     text-transform: uppercase;
-    font-size: 0.9rem;
+    font-size: var(--text-xs);
 }
 
 .action-btns {

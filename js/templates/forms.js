@@ -136,6 +136,15 @@ const FormTemplates = {
                 <input type="time" id="time" name="time" class="pixel-input" required>
             </div>
             <div class="form-group" style="grid-column: span 2;">
+                <label for="repeat">Lặp lại</label>
+                <select id="repeat" name="repeat" class="pixel-input">
+                    <option value="none">Không lặp</option>
+                    <option value="daily">Hàng ngày</option>
+                    <option value="weekly">Hàng tuần</option>
+                    <option value="monthly">Hàng tháng</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
                 <label for="link">Đường dẫn liên quan (URL)</label>
                 <input type="url" id="link" name="link" class="pixel-input" placeholder="https://...">
             </div>

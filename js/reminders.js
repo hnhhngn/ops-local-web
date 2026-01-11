@@ -76,6 +76,7 @@ function renderReminders() {
             <td>
                 <span class="event-time">${rem.date}</span><br>
                 <small>${rem.time}</small>
+                ${rem.repeat && rem.repeat !== 'none' ? `<br><span class="badge blue mini">🔄 ${rem.repeat}</span>` : ""}
             </td>
             <td style="font-size: 0.9rem; color: var(--color-muted)">${rem.notes || ""}</td>
             <td>
@@ -100,6 +101,7 @@ async function handleFormSubmit(e) {
         eventName: document.getElementById("eventName").value,
         date: document.getElementById("date").value,
         time: document.getElementById("time").value,
+        repeat: document.getElementById("repeat").value,
         link: document.getElementById("link").value,
         notes: document.getElementById("notes").value,
     };
@@ -155,6 +157,7 @@ function editRem(id) {
             eventNameEl.value = rem.eventName;
             document.getElementById("date").value = rem.date;
             document.getElementById("time").value = rem.time;
+            document.getElementById("repeat").value = rem.repeat || "none";
             document.getElementById("link").value = rem.link || "";
             document.getElementById("notes").value = rem.notes || "";
 

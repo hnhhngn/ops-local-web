@@ -4,14 +4,14 @@
 }
 
 :root {
-    /* Palette gốc */
-    --color-gray: #e3e4e6;
-    --color-blue: #2563eb;
-    --color-green: #10b981;
-    --color-yellow: #facc15;
-    --color-red: #ef4444;
-    --color-black: #000000;
-    --color-white: #ffffff;
+    /* Palette gốc (HSL Conversion) */
+    --color-gray: hsl(220, 7%, 90%); /* #e3e4e6 */
+    --color-blue: hsl(221, 83%, 53%); /* #2563eb */
+    --color-green: hsl(160, 84%, 39%); /* #10b981 */
+    --color-yellow: hsl(48, 96%, 53%); /* #facc15 */
+    --color-red: hsl(0, 84%, 60%); /* #ef4444 */
+    --color-black: hsl(0, 0%, 0%);
+    --color-white: hsl(0, 0%, 100%);
 
     /* Biến dùng chung cho UI */
     --bg-app: var(--color-gray);
@@ -38,6 +38,33 @@
     --radius-small: 4px;
     --spacing-base: 8px;
     --color-muted: #666;
+
+    /* Typography Scale (Ratio 1.2 - Minor Third) */
+    --text-xs: 0.83rem;  /* ~13.28px */
+    --text-sm: 1rem;     /* 16px (Base) */
+    --text-md: 1.2rem;   /* ~19.2px */
+    --text-lg: 1.44rem;  /* ~23.04px */
+    --text-xl: 1.72rem;  /* ~27.52px */
+    --text-2xl: 2.07rem; /* ~33.12px */
+    --text-3xl: 2.48rem; /* ~39.68px */
+
+    /* Line Heights */
+    --leading-tight: 1.2;
+    --leading-base: 1.5;
+    --leading-loose: 1.8;
+
+    /* Z-Index Scale */
+    --z-negative: -1;
+    --z-elevate: 1;
+    --z-dropdown: 100;
+    --z-sticky: 500;
+    --z-fixed: 1000;
+    --z-modal-backdrop: 9000;
+    --z-modal: 9001;
+    --z-toast: 10000;
+
+    /* Layout Constraints (Desktop Only) */
+    --min-desktop-width: 1024px;
 }
 
 *,
@@ -55,6 +82,8 @@ body {
     line-height: 1.5;
     image-rendering: pixelated;
     -webkit-font-smoothing: none;
+    min-width: var(--min-desktop-width); /* Force Desktop Width */
+    overflow-x: auto; /* Allow horizontal scroll if smaller */
 }
 
 /* Reset Form Elements */
