@@ -195,9 +195,20 @@ document.addEventListener("DOMContentLoaded", () => {
       // Metadata
       const priorityClass = task.priority === "high" ? "red" : (task.priority === "medium" ? "blue" : "gray");
       const priorityLabel = task.priority === "high" ? "High" : (task.priority === "medium" ? "Med" : "Low");
-      const typeIcons = { code: "💻", test: "🧪", design: "🎨", confirm: "✅", custom: "⚙️" };
-      const icon = typeIcons[task.type] || "📋";
-      const dateText = (task.startDate || task.endDate) ? `${task.startDate || '..'}➜${task.endDate || '..'}` : "No date";
+
+      const typeLabel = (task.type || 'task').toUpperCase();
+      const typeClassMap = {
+        'code': 'type-code',
+        'test': 'type-test',
+        'design': 'type-design',
+        'confirm': 'type-confirm',
+        'custom': 'type-custom'
+      };
+      const typeClass = typeClassMap[task.type] || 'type-confirm';
+
+      // Date formatting to include year: "YYYY-MM-DD"
+      const formatDate = (d) => d || '...';
+      const dateText = (task.startDate || task.endDate) ? `${formatDate(task.startDate)}➜${formatDate(task.endDate)}` : "";
       const progress = task.progress || 0;
 
       row.innerHTML = `
@@ -211,18 +222,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${task.name}
                 </div>
                  <div class="task-meta">
-                    ${task.notes ? `<span class="badge gray mini" title="Has Notes">📝</span>` : ""}
-                    ${(task.qas || []).length > 0 ? `<span class="badge gray mini">❓</span>` : ""}
-                    ${(task.bugs || []).length > 0 ? `<span class="badge red mini">🐛</span>` : ""}
+                    ${task.notes ? `<span class="badge gray mini" title="Has Notes">NOTE</span>` : ""}
+                    ${(task.qas || []).length > 0 ? `<span class="badge gray mini">QA</span>` : ""}
+                    ${(task.bugs || []).length > 0 ? `<span class="badge red mini">BUG</span>` : ""}
                     <span class="badge ${priorityClass} mini">${priorityLabel}</span>
-                    <button class="btn-edit-mini" title="Edit Task">✎</button>
+                    <button class="btn-edit-mini" title="Edit Task">[EDIT]</button>
                 </div>
             </div>
             
             <div class="task-sub-row">
-                 <span class="task-type-tag" style="width:80px; text-align:center; margin-right:10px; display:inline-block; flex-shrink:0;">${icon} ${task.type || 'task'}</span>
-                 <span style="width:140px; text-align:right; font-size:0.75rem; margin-right:10px; color:#666; display:inline-block; flex-shrink:0;">${dateText}</span>
-                 <div style="flex:1">
+                 <span class="task-type-tag ${typeClass}" style="margin-right:10px;">${typeLabel}</span>
+                 <span style="width:220px; text-align:left; font-size:0.75rem; margin-right:10px; color:#666; display:inline-block; flex-shrink:0;">${dateText}</span>
+                 <div style="flex:1; display:flex; justify-content:flex-end;">
                     <div class="pixel-progress-container">
                         <div class="pixel-progress-bar" style="width: ${progress}%"></div>
                         <span class="pixel-progress-text">${progress}%</span>
@@ -539,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.currentQas.push({ id: Date.now().toString(), label, link });
             const list = modalBody.querySelector("#qa-list");
             const li = document.createElement("li");
-            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">🔗</a>` : ''}`;
+            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">[->]</a>` : ''}`;
             list.appendChild(li);
             modalBody.querySelector("#qaLabel").value = "";
             modalBody.querySelector("#qaLink").value = "";
@@ -556,7 +567,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.currentBugs.push({ id: Date.now().toString(), label, link });
             const list = modalBody.querySelector("#bug-list");
             const li = document.createElement("li");
-            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">🔗</a>` : ''}`;
+            li.innerHTML = `<span>${label}</span>${link ? `<a class="item-link" href="${link}" target="_blank">[->]</a>` : ''}`;
             list.appendChild(li);
             modalBody.querySelector("#bugLabel").value = "";
             modalBody.querySelector("#bugLink").value = "";
@@ -723,19 +734,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     links.forEach((link) => {
       const item = document.createElement("div");
-      item.className = "access-item";
-
-      const iconMap = {
-        'url': '🌐',
-        'folder': '📁',
-        'file': '📄',
-        'app': '🚀'
+      // Map types to classes
+      const typeClassMap = {
+        'url': 'acc-url',
+        'folder': 'acc-dir',
+        'file': 'acc-doc',
+        'app': 'acc-app'
       };
-      const icon = iconMap[link.type] || '🔗';
+      const typeClass = typeClassMap[link.type] || 'acc-default';
+
+      item.className = `access-item ${typeClass}`;
 
       item.innerHTML = `
-  <span class="access-icon">${icon}</span>
-    <span class="access-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${link.label}</span>
+    <span class="access-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; width:100%;">${link.label}</span>
 `;
       item.title = `${link.label} (${link.path})`;
       item.setAttribute("data-path", link.path);
@@ -919,7 +930,7 @@ document.addEventListener("DOMContentLoaded", () => {
       li.style.cursor = "pointer";
 
       const isToday = rem.nextDate === todayStr;
-      const repeatIcon = rem.repeat && rem.repeat !== 'none' ? '🔄 ' : '🔔 ';
+      const repeatIcon = rem.repeat && rem.repeat !== 'none' ? '[REPEAT] ' : '[ALARM] ';
       const dateDisplay = isToday ? "Hôm nay" : rem.nextDate.split("-").slice(1).join("/");
 
       li.innerHTML = `<span>${repeatIcon}${dateDisplay} ${rem.time} - ${rem.eventName}</span>`;
@@ -935,7 +946,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (sorted.length === 0) {
-      dashboardRemindersList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/reminders.html\'">➕ Chưa có nhắc nhở</li>';
+      dashboardRemindersList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/reminders.html\'">[+] Chưa có nhắc nhở</li>';
     }
   };
 
@@ -971,21 +982,21 @@ document.addEventListener("DOMContentLoaded", () => {
     dashboardAutoList.innerHTML = "";
 
     presets.forEach((pset) => {
+      // Render as Grid Item (similar to Quick Access)
       const li = document.createElement("li");
-      li.className = "task-item";
-      li.style.justifyContent = "center";
-      li.style.background = "var(--color-green)";
-      li.style.color = "var(--color-white)";
+      li.className = "access-item acc-auto"; // Reuse access-item layout + acc-auto color
       li.style.cursor = "pointer";
-      li.style.fontWeight = "bold";
 
-      li.innerHTML = `🚀 ${pset.name} `;
+      li.innerHTML = `
+        <span class="access-label" style="width:100%; text-align:center;">${pset.name}</span>
+      `;
 
       li.onclick = async () => {
         if (!confirm(`Chạy kịch bản: ${pset.name}?`)) return;
 
         try {
           const response = await fetch("/api/automation/run", {
+            // ...
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ actions: pset.actions })
@@ -1002,7 +1013,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (presets.length === 0) {
-      dashboardAutoList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/automation.html\'">➕ Tạo kịch bản mới</li>';
+      dashboardAutoList.innerHTML = '<li class="task-item" onclick="location.href=\'pages/automation.html\'">[+] Tạo kịch bản mới</li>';
     }
   };
 
@@ -1105,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         li.innerHTML = `
   <span>${item.label}</span>
     <div>
-      ${item.link ? `<a class="item-link" href="${item.link}" target="_blank">🔗</a>` : ""}
+      ${item.link ? `<a class="item-link" href="${item.link}" target="_blank">[LNK]</a>` : ""}
       <button type="button" class="btn-remove-item" onclick="window.removeItemDashboard('${listId}', ${idx})">×</button>
     </div>
 `;

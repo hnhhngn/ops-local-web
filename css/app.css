@@ -107,13 +107,13 @@ body:not(:has(.pixel-sidebar)) main {
 }
 
 main::-webkit-scrollbar {
-    width: 16px;
+    width: 28px; /* Scaled 16px * 1.75 */
 }
 
 main::-webkit-scrollbar-track {
     background: var(--color-green);
     background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent);
-    background-size: 4px 4px;
+    background-size: 7px 7px; /* Scaled 4px * 1.75 */
     border-left: var(--border-width) solid var(--color-black);
 }
 
@@ -135,7 +135,7 @@ main h1 {
     color: var(--color-black);
     border-bottom: var(--border-width) solid var(--color-black);
     display: inline-block;
-    text-shadow: 2px 2px 0px var(--color-gray);
+    text-shadow: 4px 4px 0px var(--color-gray); /* Scaled 2px->4px via rounding */
 }
 
 .content-section {
@@ -291,9 +291,9 @@ main h1 {
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%) translateY(0);
-    height: 50px;
+    height: 88px; /* 50 * 1.75 */
     width: auto;
-    min-width: 400px;
+    min-width: 700px; /* 400 * 1.75 */
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(4px);
     border: var(--border-width) solid var(--color-black);
@@ -353,7 +353,7 @@ main h1 {
 }
 
 #dashboard.is-editing .pixel-widget::before {
-    content: "⠿";
+    content: ":::";
     position: absolute;
     top: 5px;
     left: 5px;
@@ -546,7 +546,7 @@ main h1 {
 
 /* Custom Scrollbar for containers */
 .pixel-scrollbar::-webkit-scrollbar {
-    width: 10px;
+    width: 18px; /* 10 * 1.75 */
 }
 
 .pixel-scrollbar::-webkit-scrollbar-track {
@@ -603,7 +603,7 @@ main h1 {
 .scrollable-container {
     flex: 1;
     overflow-y: auto;
-    margin-top: 1rem;
+    margin-top: 1rem; /* Scaled relative to root font */
 }
 
 /* Action Builder (from Automation) */
@@ -703,10 +703,25 @@ textarea.pixel-input {
 }
 
 .task-type-tag, .task-date-tag {
-    display: flex;
+    display: inline-flex; /* Changed from flex to allow width control inline if needed */
     align-items: center;
+    justify-content: center;
     gap: 0.25rem;
+    padding: 2px 0; /* Remove horizontal padding */
+    width: 64px;    /* Fixed width: enough for 'CONFIRM' */
+    border-radius: var(--radius-small);
+    font-weight: bold;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-black);
+    border: 1px solid var(--color-black);
 }
+
+.type-code { background-color: #a5f3fc; } /* Cyan-ish */
+.type-test { background-color: #bef264; } /* Lime-ish */
+.type-design { background-color: #fca5a5; } /* Red-ish */
+.type-confirm { background-color: #e5e7eb; } /* Gray */
+.type-custom { background-color: #fcd34d; } /* Amber */
 
 .task-item:last-child {
     border-bottom: none;
@@ -790,9 +805,11 @@ textarea.pixel-input {
 }
 
 .access-icon {
-    font-size: 1.2rem;
-    min-width: 24px;
-    text-align: center;
+    font-size: 0.9rem;
+    font-family: monospace;
+    font-weight: bold;
+    min-width: auto;
+    margin-right: 4px;
 }
 
 /* ============================== BADGE COMPONENT ============================== */
@@ -813,8 +830,10 @@ textarea.pixel-input {
 
 .badge.mini {
     font-size: 0.65rem;
-    padding: 2px 5px;
+    padding: 2px 0; /* Remove side padding to rely on width */
+    width: 42px;    /* Fixed width for uniformity (NOTE vs QA) */
     box-shadow: none;
+    justify-content: center; /* Ensure text is centered */
 }
 
 .badge.red {
@@ -1099,4 +1118,70 @@ textarea.pixel-input {
     z-index: 1;
     pointer-events: none;
 }
+
+
+/* Progress Bar Enhancement */
+.pixel-progress-container {
+    height: 14px; /* Chunky height */
+    background: var(--color-white);
+    border: 2px solid var(--color-black); /* Matching new border width */
+    position: relative;
+    border-radius: var(--radius-small);
+    overflow: hidden;
+    width: 60%; /* Limit width */
+    max-width: 200px;
+}
+
+.pixel-progress-bar {
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        var(--color-green),
+        var(--color-green) 10px,
+        #059669 10px,
+        #059669 20px
+    );
+    transition: width 300ms ease-out;
+}
+
+.pixel-progress-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: var(--color-black);
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+    z-index: 1;
+}
+
+/* Override Text Size for Grid Items (Quick Access / Automation) */
+.access-label {
+    font-size: 0.75rem !important; /* Force smaller size for grid text */
+}
+
+/* Automation specific overrides for grid buttons if any (currently list) */
+#dashboard-automation-list .task-item {
+    font-size: 0.75rem;
+}
+
+/* Quick Access & Automation Color Coding */
+.access-item.acc-url { background-color: #a5f3fc; } /* Cyan */
+.access-item.acc-dir { background-color: #fcd34d; } /* Amber */
+.access-item.acc-doc { background-color: #e5e7eb; } /* Gray */
+.access-item.acc-app { background-color: #fca5a5; } /* Red-ish */
+.access-item.acc-auto { background-color: var(--color-green); color: white; } /* Green for automation */
+.access-item.acc-default { background-color: var(--color-white); }
+
+/* Make Automation List behave like Grid */
+#dashboard-automation-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+    padding: 0.5rem;
+}
+
 

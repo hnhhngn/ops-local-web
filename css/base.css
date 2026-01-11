@@ -16,8 +16,8 @@
     /* Biến dùng chung cho UI */
     --bg-app: var(--color-gray);
     --text-main: var(--color-black);
-    --border-width: 2px;
-    --shadow-offset: 4px;
+    --border-width: 2px;       /* Refined: Thinner for readability */
+    --shadow-offset: 4px;      /* Consistent with border */
 
     /* Biến động cho Button */
     --btn-bg: var(--color-white);
@@ -25,7 +25,7 @@
     --btn-shadow: var(--color-black);
 
     /* Biến Sidebar */
-    --sidebar-width: 280px;
+    --sidebar-width: 490px;
     --sidebar-bg: var(--color-white);
 
     /* Grid */
@@ -33,20 +33,21 @@
     --cell-size: calc(100% / var(--grid-cols));
     --color-grid-line: rgba(0, 0, 0, 0.1);
 
-    /* Semantic Tokens (Added) */
-    --radius-main: 10px;
-    --radius-small: 4px;
-    --spacing-base: 8px;
+    /* Semantic Tokens (Scaled up ~175%) */
+    --radius-main: 18px;
+    --radius-small: 7px;
+    --spacing-base: 14px;
     --color-muted: #666;
 
-    /* Typography Scale (Ratio 1.2 - Minor Third) */
-    --text-xs: 0.83rem;  /* ~13.28px */
-    --text-sm: 1rem;     /* 16px (Base) */
-    --text-md: 1.2rem;   /* ~19.2px */
-    --text-lg: 1.44rem;  /* ~23.04px */
-    --text-xl: 1.72rem;  /* ~27.52px */
-    --text-2xl: 2.07rem; /* ~33.12px */
-    --text-3xl: 2.48rem; /* ~39.68px */
+    /* Typography Scale */
+    /* text-xs reduced slightly for better fit in cards */
+    --text-xs: 0.75rem;     
+    --text-sm: 1rem;        
+    --text-md: 1.2rem;   
+    --text-lg: 1.44rem;  
+    --text-xl: 1.72rem;  
+    --text-2xl: 2.07rem; 
+    --text-3xl: 2.48rem; 
 
     /* Line Heights */
     --leading-tight: 1.2;
@@ -63,8 +64,8 @@
     --z-modal: 9001;
     --z-toast: 10000;
 
-    /* Layout Constraints (Desktop Only) */
-    --min-desktop-width: 1024px;
+    /* Layout Constraints (Scaled) */
+    --min-desktop-width: 1792px; /* 1024 * 1.75 */
 }
 
 *,
@@ -73,6 +74,10 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+html {
+    font-size: 28px; /* BASE SCALING FACTOR: 16px * 1.75 = 28px */
 }
 
 body {
