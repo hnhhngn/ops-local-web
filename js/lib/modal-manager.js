@@ -38,10 +38,55 @@ class ModalManager {
         this.overlay = document.getElementById('modal-overlay');
         this.modal = this.overlay.querySelector('.pixel-modal');
         this.headerTitle = this.overlay.querySelector('.pixel-modal-header h2');
+
+        // Ensure Save button exists in header (Backward compatibility if HTML is static)
+        let headerActions = this.overlay.querySelector('.pixel-modal-header .header-actions');
+        if (!headerActions) {
+            // Re-structure header if needed or just append
+            const header = this.overlay.querySelector('.pixel-modal-header');
+            const closeBtn = header.querySelector('button'); // existing close button
+
+            // Create a wrapper for actions if not exists
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'header-actions';
+            actionsDiv.style.display = 'flex';
+            actionsDiv.style.gap = '0.5rem';
+
+            // Move close button into actions
+            if (closeBtn) {
+                header.removeChild(closeBtn);
+                actionsDiv.appendChild(closeBtn);
+            }
+
+            header.appendChild(actionsDiv);
+            headerActions = actionsDiv;
+        }
+
+        // Add Save Button if not exists
+        let saveBtn = document.getElementById('btn-save-modal-global');
+        if (!saveBtn) {
+            saveBtn = document.createElement('button');
+            saveBtn.id = 'btn-save-modal-global';
+            saveBtn.className = 'pixel-button blue mini hidden';
+            saveBtn.textContent = 'LƯU';
+            saveBtn.style.marginRight = '0.5rem';
+            headerActions.insertBefore(saveBtn, headerActions.firstChild);
+        }
+
         this.body = this.overlay.querySelector('.pixel-modal-body');
         this.closeBtn = document.getElementById('btn-close-modal-global') || this.overlay.querySelector('.pixel-modal-header button');
+        this.saveBtn = document.getElementById('btn-save-modal-global');
 
         this.closeBtn.addEventListener('click', () => this.close());
+        this.saveBtn.addEventListener('click', () => {
+            const form = this.body.querySelector('form');
+            if (form) {
+                // Trigger native submit to validation HTML5
+                if (form.reportValidity()) {
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }
+        });
 
         // Global keydown for Escape
         document.addEventListener('keydown', (e) => {
@@ -59,6 +104,10 @@ class ModalManager {
      * @param {Function} onRender - Callback after HTML is injected (for binding events like AddAction)
      */
     open(type, title, onSubmit, onRender = null) {
+        // Show Save Button by default for forms, logic can be refined
+        if (this.saveBtn) {
+            this.saveBtn.classList.remove('hidden');
+        }
         const template = window.FormTemplates[type];
         if (!template) {
             console.error(`Template type '${type}' not found.`);

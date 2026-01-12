@@ -5,85 +5,98 @@
 const FormTemplates = {
     // Task Form (Extended with QA, Bug, Sub-tasks)
     task: `
-        <form id="task-form" class="form-grid">
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="name">Tên công việc</label>
-                <input type="text" id="name" name="name" class="pixel-input" placeholder="Nhập tên..." required>
-            </div>
-            
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="parentId">Task cha (nếu là sub-task)</label>
-                <select id="parentId" name="parentId" class="pixel-input">
-                    <option value="">-- Không có (Task gốc) --</option>
-                    <!-- Options sẽ được inject bởi JS -->
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="type">Loại</label>
-                <select id="type" class="pixel-input">
-                    <option value="code">Code</option>
-                    <option value="test">Test</option>
-                    <option value="design">Design</option>
-                    <option value="confirm">Confirm</option>
-                    <option value="custom">Tùy chỉnh</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="priority">Độ ưu tiên</label>
-                <select id="priority" class="pixel-input">
-                    <option value="low">Thấp</option>
-                    <option value="medium">Trung bình</option>
-                    <option value="high">Cao</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="startDate">Ngày bắt đầu</label>
-                <input type="date" id="startDate" name="startDate" class="pixel-input">
-            </div>
-
-            <div class="form-group">
-                <label for="endDate">Ngày kết thúc</label>
-                <input type="date" id="endDate" name="endDate" class="pixel-input">
-            </div>
-
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="progress">Tiến độ (%)</label>
-                <input type="number" id="progress" name="progress" class="pixel-input" min="0" max="100" value="0">
-            </div>
-
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="notes">Ghi chú</label>
-                <textarea id="notes" class="pixel-input" rows="2"></textarea>
-            </div>
-
-            <!-- QA LIST SECTION -->
-            <div class="form-group item-list-section" style="grid-column: span 2;">
-                <label>📝 Danh sách QA (Hỏi đáp với KH)</label>
-                <div class="item-input-row">
-                    <input type="text" id="qaLabel" class="pixel-input" placeholder="Tên QA..." style="flex:1;">
-                    <input type="url" id="qaLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
-                    <button type="button" class="pixel-button green mini" id="btnAddQa" style="min-width: 40px;">+</button>
+        <form id="task-form" class="task-modal-grid">
+            <!-- LEFT COLUMN -->
+            <div class="task-col-left">
+                <!-- Row 1: Name & Parent -->
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="name">Tên công việc</label>
+                        <input type="text" id="name" name="name" class="pixel-input" placeholder="Nhập tên..." required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="parentId">Task cha</label>
+                        <select id="parentId" name="parentId" class="pixel-input">
+                            <option value="">-- Gốc --</option>
+                            <!-- Options sẽ được inject bởi JS -->
+                        </select>
+                    </div>
                 </div>
-                <ul id="qa-list" class="item-list-mini"></ul>
-            </div>
 
-            <!-- BUG LIST SECTION -->
-            <div class="form-group item-list-section" style="grid-column: span 2;">
-                <label>🐛 Danh sách Bug</label>
-                <div class="item-input-row">
-                    <input type="text" id="bugLabel" class="pixel-input" placeholder="Mô tả bug..." style="flex:1;">
-                    <input type="url" id="bugLink" class="pixel-input" placeholder="Link (nếu có)..." style="flex:2;">
-                    <button type="button" class="pixel-button red mini" id="btnAddBug" style="min-width: 40px;">+</button>
+                <!-- Row 2: Type, Priority, Progress -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Loại</label>
+                        <select id="type" class="pixel-input">
+                            <option value="code">Code</option>
+                            <option value="test">Test</option>
+                            <option value="design">Design</option>
+                            <option value="confirm">Confirm</option>
+                            <option value="custom">Tùy chỉnh</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Độ ưu tiên</label>
+                        <select id="priority" class="pixel-input">
+                            <option value="low">Thấp</option>
+                            <option value="medium">TB</option>
+                            <option value="high">Cao</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="progress">Tiến độ (%)</label>
+                        <input type="number" id="progress" name="progress" class="pixel-input" min="0" max="100" value="0">
+                    </div>
                 </div>
-                <ul id="bug-list" class="item-list-mini"></ul>
+
+                <!-- Row 3: Start & End Date -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">Ngày bắt đầu</label>
+                        <input type="date" id="startDate" name="startDate" class="pixel-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">Ngày kết thúc</label>
+                        <input type="date" id="endDate" name="endDate" class="pixel-input">
+                    </div>
+                </div>
+
+                <!-- Row 4: Notes (fills remaining height) -->
+                <div class="form-group checkbox-grow">
+                    <label for="notes">Ghi chú</label>
+                    <textarea id="notes" class="pixel-input full-height" style="resize: none;"></textarea>
+                </div>
             </div>
 
-            <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
-                <button type="submit" class="pixel-button blue full-width">LƯU CÔNG VIỆC</button>
+            <!-- RIGHT COLUMN -->
+            <div class="task-col-right">
+                <!-- QA LIST SECTION -->
+                <div class="form-group item-list-section no-border-top">
+                    <label>📝 Danh sách QA</label>
+                    <div class="item-input-row">
+                        <input type="text" id="qaLabel" class="pixel-input" placeholder="Tên QA..." style="flex:1;">
+                        <input type="url" id="qaLink" class="pixel-input" placeholder="Link..." style="flex:1;">
+                        <button type="button" class="pixel-button green mini" id="btnAddQa" style="min-width: 30px;">+</button>
+                    </div>
+                    <!-- Fixed height container for exactly 3 items -->
+                    <ul id="qa-list" class="item-list-mini fixed-list pixel-scrollbar"></ul>
+                </div>
+
+                <!-- BUG LIST SECTION -->
+                <div class="form-group item-list-section">
+                    <label>🐛 Danh sách Bug</label>
+                    <div class="item-input-row">
+                        <input type="text" id="bugLabel" class="pixel-input" placeholder="Mô tả bug..." style="flex:1;">
+                        <input type="url" id="bugLink" class="pixel-input" placeholder="Link..." style="flex:1;">
+                        <button type="button" class="pixel-button red mini" id="btnAddBug" style="min-width: 30px;">+</button>
+                    </div>
+                    <!-- Fixed height container for exactly 3 items -->
+                    <ul id="bug-list" class="item-list-mini fixed-list pixel-scrollbar"></ul>
+                </div>
             </div>
+
+            <!-- Save Button moved to Header -->
+            <div class="form-group" style="display: none;"></div>
         </form>
     `,
 
@@ -114,9 +127,8 @@ const FormTemplates = {
                     <option value="personal">Cá nhân</option>
                 </select>
             </div>
-            <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
-                <button type="submit" class="pixel-button green full-width">LƯU ĐƯỜNG DẪN</button>
-            </div>
+            <!-- Save Button moved to Header -->
+            <div class="form-group" style="grid-column: span 2; display: none;"></div>
         </form>
     `,
 
@@ -152,55 +164,60 @@ const FormTemplates = {
                 <label for="notes">Ghi chú thêm</label>
                 <textarea id="notes" class="pixel-input" rows="2"></textarea>
             </div>
-            <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
-                <button type="submit" class="pixel-button yellow full-width" style="color: black;">LƯU NHẮC NHỞ</button>
-            </div>
+            <!-- Save Button moved to Header -->
+            <div class="form-group" style="grid-column: span 2; display: none;"></div>
         </form>
     `,
 
     // Automation Form
     automation: `
-        <form id="auto-form" class="form-grid">
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="presetName">Tên Kịch Bản (Preset Name)</label>
-                <input type="text" id="presetName" name="presetName" class="pixel-input" placeholder="Ví dụ: Start Coding Session" required>
-            </div>
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="presetDesc">Mô tả</label>
-                <textarea id="presetDesc" class="pixel-input" rows="2" placeholder="Mở VS Code, Chrome và Spotify..."></textarea>
-            </div>
-
-            <!-- ACTION BUILDER -->
-            <div class="action-builder" style="grid-column: span 2; margin-top: 1rem; border: var(--border-width) dashed var(--color-black); padding: 1rem;">
-                <label style="display:block; margin-bottom:0.5rem; font-weight:bold;">DANH SÁCH HÀNH ĐỘNG (STEPS)</label>
-
-                <div class="action-input-row" style="display:flex; gap:0.5rem; margin-bottom:1rem; align-items:flex-end;">
-                    <div class="form-group" style="flex: 1;">
-                        <label style="font-size: 0.8rem;">Loại</label>
-                        <select id="actionType" class="pixel-input">
-                            <option value="open">Mở Ứng dụng/Folder</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 3;">
-                        <label style="font-size: 0.8rem;">Đường dẫn (Path)</label>
-                        <input type="text" id="actionPath" class="pixel-input" placeholder="C:\\App.exe hoặc Folder...">
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label style="font-size: 0.8rem;">Nhãn (Label)</label>
-                        <input type="text" id="actionLabel" class="pixel-input" placeholder="Tên app...">
-                    </div>
-                    <button type="button" class="pixel-button green mini" id="btnAddAction">THÊM</button>
+        <form id="auto-form" class="auto-modal-grid">
+            <!-- LEFT COLUMN: Info (25%) -->
+            <div class="auto-col-left">
+                <div class="form-group">
+                    <label for="presetName">Tên Kịch Bản</label>
+                    <input type="text" id="presetName" name="presetName" class="pixel-input" placeholder="Ví dụ: Start Coding Session" required>
                 </div>
-
-                <ul id="new-action-list" class="action-list-mini pixel-scrollbar" style="max-height: 200px; overflow-y: auto; background: #f0f0f0; border: 1px solid #000; padding: 0.5rem; list-style: none;">
-                    <!-- Items added via JS -->
-                    <li id="empty-action-msg" style="padding:1rem; color:#666; text-align:center;">Chưa có hành động nào</li>
-                </ul>
+                <!-- Description grows to fill height -->
+                <div class="form-group checkbox-grow">
+                    <label for="presetDesc">Mô tả</label>
+                    <textarea id="presetDesc" class="pixel-input full-height" style="resize: none;" placeholder="Mở VS Code, Chrome và Spotify..."></textarea>
+                </div>
             </div>
 
-            <div class="form-group" style="grid-column: span 2; align-items: flex-end; margin-top: 1rem;">
-                <button type="submit" class="pixel-button red full-width">LƯU KỊCH BẢN</button>
+            <!-- RIGHT COLUMN: Actions (75%) -->
+            <div class="auto-col-right">
+                <div class="form-group item-list-section no-border-top full-height-section">
+                    <label>DANH SÁCH HÀNH ĐỘNG (STEPS)</label>
+                    
+                    <!-- Action Inputs -->
+                    <div class="action-input-row" style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:flex-end;">
+                        <div class="form-group" style="width: 120px;">
+                            <label style="font-size: 0.8rem;">Loại</label>
+                            <select id="actionType" class="pixel-input">
+                                <option value="open">Mở App/File</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 4;">
+                            <label style="font-size: 0.8rem;">Đường dẫn (Path)</label>
+                            <input type="text" id="actionPath" class="pixel-input" placeholder="C:\\Windows\\System32\\calc.exe...">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label style="font-size: 0.8rem;">Nhãn</label>
+                            <input type="text" id="actionLabel" class="pixel-input" placeholder="Tên...">
+                        </div>
+                        <button type="button" class="pixel-button green mini" id="btnAddAction" style="min-width: 40px; height: 32px;">+</button>
+                    </div>
+
+                    <!-- Action List -->
+                    <ul id="new-action-list" class="item-list-mini auto-list-fill pixel-scrollbar">
+                        <li id="empty-action-msg" style="padding:1rem; color:#666; text-align:center;">Chưa có hành động nào</li>
+                    </ul>
+                </div>
             </div>
+
+            <!-- Save Button moved to Header -->
+            <div class="form-group" style="display: none;"></div>
         </form>
     `,
 
