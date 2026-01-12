@@ -39,10 +39,7 @@ function openForAdd() {
  */
 async function loadReminders() {
     try {
-        const response = await fetch(API_DATA_URL);
-        if (!response.ok) throw new Error("Failed to fetch reminders");
-        const data = await response.json();
-        allReminders = Array.isArray(data) ? data : (data ? [data] : []);
+        allReminders = await window.opsApi.getAll("reminders.json");
         renderReminders();
     } catch (error) {
         console.error("Error loading reminders:", error);
@@ -129,17 +126,7 @@ async function handleFormSubmit(e) {
  * Save to server
  */
 async function saveRemindersToServer(list) {
-    try {
-        const response = await fetch(API_DATA_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(list),
-        });
-        return response.ok;
-    } catch (error) {
-        alert("Lỗi khi lưu dữ liệu!");
-        return false;
-    }
+    return await window.opsApi.save("reminders.json", list);
 }
 
 /**

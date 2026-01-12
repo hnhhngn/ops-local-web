@@ -49,13 +49,7 @@ function openForAdd() {
  */
 async function loadTasks() {
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) {
-      throw new Error("Failed to fetch tasks");
-    }
-    const data = await response.json();
-    // Normalize to array if it's not (though server should handle it)
-    allTasks = Array.isArray(data) ? data : [];
+    allTasks = await window.opsApi.getAll("tasks.json");
     renderTasks();
   } catch (error) {
     console.error("Error loading tasks:", error);
@@ -183,21 +177,7 @@ async function handleFormSubmit(e) {
  * Save the entire task list to the JSON file
  */
 async function saveTasksToServer(taskList) {
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(taskList),
-    });
-
-    if (!response.ok) {
-      throw new Error("Save failed");
-    }
-    return true;
-  } catch (error) {
-    alert("Lỗi khi lưu dữ liệu!");
-    return false;
-  }
+  return await window.opsApi.save("tasks.json", taskList);
 }
 
 /**

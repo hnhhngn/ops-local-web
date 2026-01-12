@@ -63,10 +63,7 @@ function openForAdd() {
  */
 async function loadPresets() {
     try {
-        const response = await fetch(API_DATA_URL);
-        if (!response.ok) throw new Error("Failed to fetch automation data");
-        const data = await response.json();
-        allPresets = Array.isArray(data) ? data : (data ? [data] : []);
+        allPresets = await window.opsApi.getAll("automation.json");
         renderPresets();
     } catch (error) {
         console.error("Error loading presets:", error);
@@ -110,22 +107,14 @@ async function runPreset(id) {
 
     if (!confirm(`Bạn có muốn chạy kịch bản "${pset.name}" ngay bây giờ không?`)) return;
 
-    try {
-        const response = await fetch(API_RUN_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ actions: pset.actions })
-        });
-
-        const result = await response.json();
-        if (result.ok) {
-            alert("Đã thực thi xong kịch bản!");
-        } else {
-            alert("Lỗi thực thi: " + JSON.stringify(result.error));
-        }
-    } catch (e) {
-        alert("Lỗi kết nối server: " + e.message);
+    const success = await runActions(pset.actions);
+    if (success) {
+        console.log("Preset executed successfully");
     }
+}
+
+async function runActions(actions) {
+    return await window.opsApi.runAutomation(actions);
 }
 
 /**
@@ -229,17 +218,7 @@ async function handleFormSubmit(e) {
  * Save to Server
  */
 async function savePresetsToServer(list) {
-    try {
-        const response = await fetch(API_DATA_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(list),
-        });
-        return response.ok;
-    } catch (error) {
-        alert("Lỗi khi lưu dữ liệu!");
-        return false;
-    }
+    return await window.opsApi.save("automation.json", list);
 }
 
 /**

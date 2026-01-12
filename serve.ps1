@@ -54,7 +54,9 @@ function Write-JsonResponse($Response, $StatusCode, $Payload) {
     $Response.ContentType = "application/json; charset=utf-8"
 
     try {
-        $json = $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
+        # Unary array hack to force PS to serialize the array as a JSON array [...] 
+        # instead of a PSObject with value/Count properties.
+        $json = , $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
     }
     catch {
         $json = '{"ok":false,"error":{"code":"JSON_SERIALIZE_ERROR","message":"Failed to serialize response"}}'
@@ -278,7 +280,14 @@ function Handle-ApiRequest($Request, $Response) {
             }
 
             try {
-                $json = $Payload | ConvertTo-Json -Depth 10 -ErrorAction Stop
+                if (-not (Test-Path $DataDir)) {
+                    New-Item -ItemType Directory -Path $DataDir -Force | Out-Null
+                }
+                # FORCE explicit cast to [object[]] to ensure it serializes as a JSON Array [...]
+                # and suppress any ArrayList/Collection 'value/Count' wrappers.
+                $cleanArray = [object[]]$Payload
+                $json = ConvertTo-Json -InputObject $cleanArray -Depth 10 -ErrorAction Stop
+                
                 Set-Content -Path $FilePath -Value $json -Force -Encoding utf8 -ErrorAction Stop
                 Write-JsonResponse $Response 200 @{ ok = $true }
                 break

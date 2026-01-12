@@ -29,9 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   const loadLayout = async () => {
     try {
-      const response = await fetch("/api/data?file=layout.json");
-      if (!response.ok) return;
-      const layout = await response.json();
+      const layout = await window.opsApi.getAll("layout.json");
 
       layout.forEach(item => {
         const widget = document.getElementById(item.id);
@@ -90,10 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dashboardTaskList) return;
 
     try {
-      const response = await fetch("/api/data?file=tasks.json");
-      if (!response.ok) return;
-      const data = await response.json();
-      const tasks = Array.isArray(data) ? data : (data ? [data] : []);
+      const tasks = await window.opsApi.getAll("tasks.json");
       renderDashboardTasks(tasks);
     } catch (err) {
       console.error("Dashboard task load error:", err);
@@ -303,8 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ev.preventDefault();
           const formData = new FormData(ev.target);
           try {
-            const res = await fetch("/api/data?file=tasks.json");
-            const all = await res.json();
+            const all = await window.opsApi.getAll("tasks.json");
             const idx = all.findIndex(t => t.id === task.id);
             if (idx !== -1) {
               all[idx] = {
@@ -321,11 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 bugs: window.currentBugs
               };
 
-              await fetch("/api/data?file=tasks.json", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(all)
-              });
+              await window.opsApi.save("tasks.json", all);
               window.modalManager.close();
               loadDashboardTasks();
             }
@@ -344,8 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 100);
 
             try {
-              const res = await fetch("/api/data?file=tasks.json");
-              const allTasks = await res.json();
+              const allTasks = await window.opsApi.getAll("tasks.json");
               const parentSelect = modalBody.querySelector("#parentId");
               const typeSelect = modalBody.querySelector("#type");
 
@@ -483,15 +472,9 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        const res = await fetch("/api/data?file=tasks.json");
-        const data = await res.json();
-        const all = Array.isArray(data) ? data : (data ? [data] : []);
+        const all = await window.opsApi.getAll("tasks.json");
         all.push(task);
-        await fetch("/api/data?file=tasks.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(all)
-        });
+        await window.opsApi.save("tasks.json", all);
         window.modalManager.close();
         loadDashboardTasks();
       } catch (err) { console.error(err); }
@@ -505,8 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 2. Populate Parent Dropdown & Type Logic
       let allTasks = [];
       try {
-        const res = await fetch("/api/data?file=tasks.json");
-        allTasks = await res.json();
+        allTasks = await window.opsApi.getAll("tasks.json");
       } catch (err) { console.error(err); }
 
       const parentSelect = modalBody.querySelector("#parentId");
@@ -589,15 +571,9 @@ document.addEventListener("DOMContentLoaded", () => {
         group: formData.get("group")
       };
       try {
-        const res = await fetch("/api/data?file=links.json");
-        const data = await res.json();
-        const all = Array.isArray(data) ? data : (data ? [data] : []);
+        const all = await window.opsApi.getAll("links.json");
         all.push(link);
-        await fetch("/api/data?file=links.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(all)
-        });
+        await window.opsApi.save("links.json", all);
         window.modalManager.close();
         loadDashboardAccess(); // Refresh link grid
       } catch (err) { console.error(err); }
@@ -605,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.openRemAddModal = () => {
-    window.modalManager.open('reminder', 'THÊM NHẮC NHỞ MỚI', async (e) => {
+    window.modalManager.open('reminder', 'THÊM NHẮC NHỎ MỚI', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const rem = {
@@ -618,15 +594,9 @@ document.addEventListener("DOMContentLoaded", () => {
         notes: formData.get("notes")
       };
       try {
-        const res = await fetch("/api/data?file=reminders.json");
-        const data = await res.json();
-        const all = Array.isArray(data) ? data : (data ? [data] : []);
+        const all = await window.opsApi.getAll("reminders.json");
         all.push(rem);
-        await fetch("/api/data?file=reminders.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(all)
-        });
+        await window.opsApi.save("reminders.json", all);
         window.modalManager.close();
         if (typeof loadDashboardReminders === 'function') loadDashboardReminders();
       } catch (err) { console.error(err); }
@@ -645,16 +615,11 @@ document.addEventListener("DOMContentLoaded", () => {
         actions: window.currentActions || []
       };
       try {
-        const res = await fetch("/api/data?file=automation.json");
-        const data = await res.json();
-        const all = Array.isArray(data) ? data : (data ? [data] : []);
+        const all = await window.opsApi.getAll("automation.json");
         all.push(preset);
-        await fetch("/api/data?file=automation.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(all)
-        });
+        await window.opsApi.save("automation.json", all);
         window.modalManager.close();
+        if (typeof loadDashboardAutomation === "function") loadDashboardAutomation();
       } catch (err) { console.error(err); }
     }, (modalBody) => {
       // Re-init action builder logic (simplified)
@@ -712,10 +677,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dashboardAccessGrid) return;
 
     try {
-      const response = await fetch("/api/data?file=links.json");
-      if (!response.ok) return;
-      const data = await response.json();
-      const links = Array.isArray(data) ? data : (data ? [data] : []);
+      const links = await window.opsApi.getAll("links.json");
       renderDashboardAccess(links);
     } catch (err) {
       console.error("Dashboard access load error:", err);
@@ -867,10 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dashboardRemindersList) return;
 
     try {
-      const response = await fetch("/api/data?file=reminders.json");
-      if (!response.ok) return;
-      const data = await response.json();
-      const reminders = Array.isArray(data) ? data : (data ? [data] : []);
+      const reminders = await window.opsApi.getAll("reminders.json");
       renderDashboardReminders(reminders);
     } catch (err) {
       console.error("Dashboard reminders load error:", err);
@@ -964,10 +923,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dashboardAutoList) return;
 
     try {
-      const response = await fetch("/api/data?file=automation.json");
-      if (!response.ok) return;
-      const data = await response.json();
-      const presets = Array.isArray(data) ? data : (data ? [data] : []);
+      const presets = await window.opsApi.getAll("automation.json");
       renderDashboardAutomation(presets);
     } catch (err) {
       console.error("Dashboard automation load error:", err);

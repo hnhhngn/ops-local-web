@@ -57,11 +57,7 @@ function closeModal() {
  */
 async function loadLinks() {
   try {
-    const response = await fetch(API_DATA_URL);
-    if (!response.ok) throw new Error("Failed to fetch links");
-    const data = await response.json();
-    // Normalize to array: PowerShell often serializes a single item as an object, not a [object]
-    allLinks = Array.isArray(data) ? data : (data ? [data] : []);
+    allLinks = await window.opsApi.getAll("links.json");
     renderLinks();
   } catch (error) {
     console.error("Error loading links:", error);
@@ -84,7 +80,7 @@ function renderLinks() {
 
     tr.innerHTML = `
             <td><strong>${link.label}</strong></td>
-            <td>${icon} ${link.type.toUpperCase()}</td>
+            <td>${icon} ${(link.type || 'url').toUpperCase()}</td>
             <td><div class="path-display" title="${link.path}">${link.path}</div></td>
             <td><span class="badge blue">${link.group || "Chung"}</span></td>
             <td class="action-btns">
@@ -134,41 +130,14 @@ async function handleFormSubmit(e) {
  * Save to server
  */
 async function saveLinksToServer(list) {
-  try {
-    const response = await fetch(API_DATA_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(list),
-    });
-    return response.ok;
-  } catch (error) {
-    alert("Lỗi khi lưu dữ liệu!");
-    return false;
-  }
+  return await window.opsApi.save("links.json", list);
 }
 
 /**
  * Trigger local launch
  */
 async function launchResource(path) {
-  try {
-    const response = await fetch(API_LAUNCH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: path }),
-    });
-    if (!response.ok) {
-      const err = await response.json();
-      alert("Lỗi khi mở tài nguyên: " + (err.error ? err.error.message : "Không xác định"));
-    } else {
-      const result = await response.json();
-      if (result.alreadyOpen) {
-        alert("Tài nguyên/Thư mục này đang được mở sẵn trên hệ thống.");
-      }
-    }
-  } catch (error) {
-    console.error("Launch error:", error);
-  }
+  window.opsApi.launch(path);
 }
 
 /**
